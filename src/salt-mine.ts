@@ -18,7 +18,7 @@ export class SaltMine
     private sqs : AWS.SQS;
     private sns : AWS.SNS;
 
-    private constructor(processors : WorkQueueProcessor[],
+    public constructor(processors : WorkQueueProcessor[],
                         queueUrl : string,
                         notificationArn : string,
                         sqs: AWS.SQS = new AWS.SQS({apiVersion: '2012-11-05',region: 'us-east-1'}),
