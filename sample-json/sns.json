@@ -1,0 +1,80 @@
+
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:012345678901:saltmine-queue-notification:dc89a920-98e6-4b83-99a4-2a9cedc137bf",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "8bdd075b-b84b-5ffc-b4e4-544bc28aaa53",
+        "TopicArn": "arn:aws:sns:us-east-1:012345678901:saltmine-queue-notification",
+        "Subject": "TestSubject",
+        "Message": "{\n\"msg\":\"a1\"\n}",
+        "Timestamp": "2018-02-28T09:38:09.584Z",
+        "SignatureVersion": "1",
+        "Signature": "RM1vgl8n1v0iLbbZyYi50VgpF2Sm+C8Pu54R6KeOz3ipO9MB3ZnzS3OhZGOYiqgwuCwdtqQ+l8c8dakrJJkyYyN8goU9WQZDcq1bTzc4AsFWk4ihznlZ4JfAVKiq7/Xx/OvJe9ip9fUGZMFyk6magNNep1tDvV/CBUM9V0iz1unCAPX46K1w7wFMF3PZDuhgltiKn4yL+FpSw0CpLmcEys3by4I4nO/CdWYtbFoLJeq958QIG1UlSj3WFdETjT51oKsqU9NNzbJrGXNGQiaeLj6ML5qnfm5wSeu4OCPtyhcIeeiJVFZCONG1bY1R+l2xNRVU0LFLURvYF/6SJVhToA==",
+        "SigningCertUrl": "https://sns.us-east-1.amazonaws.com/SimpleNotificationService-433026a4060d206028891664da859041.pem",
+        "UnsubscribeUrl": "https://sns.us-east-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-1:012345678901:saltmine-queue-notification:dc89a920-98e6-4b83-99a4-2a9cedc137bf",
+        "MessageAttributes": {
+          "AWS.SNS.MOBILE.MACOS_SANDBOX.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.GCM.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.APNS_VOIP_SANDBOX.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.MPNS.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.BAIDU.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.MACOS.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.MPNS.Type": {
+            "Type": "String",
+            "Value": "token"
+          },
+          "AWS.SNS.MOBILE.MPNS.NotificationClass": {
+            "Type": "String",
+            "Value": "realtime"
+          },
+          "AWS.SNS.MOBILE.ADM.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.APNS_SANDBOX.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.APNS.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.WNS.Type": {
+            "Type": "String",
+            "Value": "wns/badge"
+          },
+          "AWS.SNS.MOBILE.APNS_VOIP.TTL": {
+            "Type": "String",
+            "Value": "10"
+          },
+          "AWS.SNS.MOBILE.WNS.TTL": {
+            "Type": "String",
+            "Value": "10"
+          }
+        }
+      }
+    }
+  ]
+}

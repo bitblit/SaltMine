@@ -1,0 +1,38 @@
+machine:
+  timezone: America/Los_Angeles
+  node:
+    version: 6.10.2
+
+dependencies:
+ pre:
+ - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+
+ override:
+  - npm install
+
+test:
+ pre:
+  # Filter the build json file to actually have the version number in it
+  - find . -type f -regex ".*/build-properties\.json" -exec sed -i.bak s/LOCAL-SNAPSHOT/$CIRCLE_BUILD_NUM/ {} \;
+  - find . -type f -regex ".*/build-properties\.json" -exec sed -i.bak s/LOCAL-BRANCH/$CIRCLE_BRANCH/ {} \;
+  - find . -type f -regex ".*/build-properties\.json" -exec sed -i.bak s/LOCAL-TAG/$CIRCLE_TAG/ {} \;
+  - find . -type f -regex ".*/build-properties\.json" -exec sed -i.bak s/LOCAL-HASH/$CIRCLE_SHA1/ {} \;
+  # Copy these files to output just in case
+  - cp src/build-properties.json $CIRCLE_ARTIFACTS
+  # Always run gulp even if not doing a deploy
+  - npm run compile
+ override:
+  - npm run test
+
+ post:
+
+deployment:
+
+    prod:
+      tag : /release-.*/
+      commands:
+        - echo Publishing release to npm
+        # Update the version number
+        - find . -type f -regex ".*/package\.json" -exec sed -i.bak s/0\.0\.0/${CIRCLE_TAG:8}+$CIRCLE_BUILD_NUM/ {} \;
+        - echo publishing to NPM as version ${CIRCLE_TAG:8}+$CIRCLE_BUILD_NUM
+        - npm publish --access=public
