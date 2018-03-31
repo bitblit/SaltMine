@@ -1,8 +1,4 @@
-import {WorkQueueEntry} from "./work-queue-entry";
-import * as AWS from "aws-sdk";
 import {Logger} from "@bitblit/ratchet/dist/common/logger";
-import {WorkQueueProcessor} from "./work-queue-processor";
-import {WorkQueueResult} from "./work-queue-result";
 import {Callback, Context} from "aws-lambda";
 import {SaltMine} from "./salt-mine";
 import {LambdaEventDetector} from "@bitblit/ratchet/dist/aws/lambda-event-detector";
@@ -32,7 +28,7 @@ export class SaltMineLambda
             }
             let msg = event.Records[0].Sns.Message;
             Logger.info("Received SNS event : Triggering SQS pull");
-            SaltMineLambda.chainRunWorkQueueTasks(saltMine, context, minRemainTimeInSeconds).then(res=>{
+            SaltMineLambda.chainRunSaltMineTasks(saltMine, context, minRemainTimeInSeconds).then(res=>{
                 context.succeed("SaltMine pull fired")
             })
                 .catch(err=>{
@@ -47,12 +43,12 @@ export class SaltMineLambda
 
     }
 
-    public static chainRunWorkQueueTasks(saltMine: SaltMine, context: Context, minRemainTimeInSeconds: number) : Promise<any>
+    public static chainRunSaltMineTasks(saltMine: SaltMine, context: Context, minRemainTimeInSeconds: number) : Promise<any>
     {
         return saltMine.takeAndProcessQueueEntry().then(res=>{
             if (res==null)
             {
-                Logger.info("Work queue is now empty - stopping");
+                Logger.info("Salt mine queue is now empty - stopping");
                 return null;
             }
             else
@@ -61,7 +57,7 @@ export class SaltMineLambda
                 if (context.getRemainingTimeInMillis()>(minRemainTimeInSeconds*1000))
                 {
                     Logger.info("Still have more than 90 seconds remaining (%d ms) - running again", context.getRemainingTimeInMillis());
-                    return saltMine.chainRunWorkQueueTasks(context,minRemainTimeInSeconds);
+                    return SaltMineLambda.chainRunSaltMineTasks(saltMine,context,minRemainTimeInSeconds);
                 }
                 else
                 {

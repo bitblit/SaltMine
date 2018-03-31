@@ -5,10 +5,7 @@
   "main": "./dist/index",
   "typings": "./dist/index",
   "files": [
-    "dist/index.js",
-    "dist/index.d.ts",
-    "dist/aws",
-    "dist/common"
+    "dist"
   ],
   "author": "Christopher Weiss <bitblit@gmail.com>",
   "config": {},

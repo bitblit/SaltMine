@@ -1,4 +1,4 @@
-export interface WorkQueueEntry
+export interface SaltMineEntry
 {
     _marker : string;
     created: number;

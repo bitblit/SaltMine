@@ -1,9 +1,8 @@
-import {WorkQueueEntry} from "./work-queue-entry";
 import * as AWS from "aws-sdk";
 import {Logger} from "@bitblit/ratchet/dist/common/logger";
-import {WorkQueueProcessor} from "./work-queue-processor";
-import {WorkQueueResult} from "./work-queue-result";
-import {Context} from "aws-lambda";
+import {SaltMineProcessor} from "./salt-mine-processor";
+import {SaltMineEntry} from "./salt-mine-entry";
+import {SaltMineResult} from "./salt-mine-result";
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -14,16 +13,16 @@ export class SaltMine
     public static SALT_MINE_MARKER ="__SALT_MINE";
     private queueUrl : string;
     private notificationArn : string;
-    private processors : WorkQueueProcessor[];
+    private processors : SaltMineProcessor[];
     private sqs : AWS.SQS;
     private sns : AWS.SNS;
 
-    public constructor(processors : WorkQueueProcessor[],
+    public constructor(processors : SaltMineProcessor[],
                         queueUrl : string,
                         notificationArn : string,
                         sqs: AWS.SQS = new AWS.SQS({apiVersion: '2012-11-05',region: 'us-east-1'}),
                         sns : AWS.SNS = new AWS.SNS({apiVersion: '2012-11-05',region: 'us-east-1'})) {
-        Logger.info("Creating WorkQueueService");
+        Logger.info("Creating SaltMineService");
         if (!processors || processors.length==0)
         {
             throw "Cannot create with no processors";
@@ -44,7 +43,7 @@ export class SaltMine
         this.sns = sns;
     }
 
-    private validateProcessor(p: WorkQueueProcessor)
+    private validateProcessor(p: SaltMineProcessor)
     {
         if (!p)
         {
@@ -56,10 +55,10 @@ export class SaltMine
         }
     }
 
-    private findProcessor(type:string) : WorkQueueProcessor
+    private findProcessor(type:string) : SaltMineProcessor
     {
         let up: string = type.toUpperCase();
-        let filtered : WorkQueueProcessor[] = this.processors.filter(p=>up==p.getType().toUpperCase());
+        let filtered : SaltMineProcessor[] = this.processors.filter(p=>up==p.getType().toUpperCase());
         if (filtered.length==0)
         {
             Logger.warn("Found no matching processor for %s",up);
@@ -77,7 +76,7 @@ export class SaltMine
         return this.findProcessor(type)!=null;
     }
 
-    public createEntry(type: string, data: any = {}, metadata: any = {}) : WorkQueueEntry
+    public createEntry(type: string, data: any = {}, metadata: any = {}) : SaltMineEntry
     {
         if (!this.validType(type))
         {
@@ -91,14 +90,14 @@ export class SaltMine
             data: data,
             metadata: metadata
 
-        } as WorkQueueEntry;
+        } as SaltMineEntry;
     }
 
-    public validEntry(entry:WorkQueueEntry) : boolean {
+    public validEntry(entry:SaltMineEntry) : boolean {
         return (entry!=null && entry.type!=null && this.validType(entry.type));
     }
 
-    public takeAndProcessQueueEntry(): Promise<WorkQueueEntry> {
+    public takeAndProcessQueueEntry(): Promise<SaltMineEntry> {
         return this.takeQueueEntry().then(entry=>{
             if (entry)
             {
@@ -112,7 +111,7 @@ export class SaltMine
         });
     }
 
-    public takeQueueEntry(): Promise<WorkQueueEntry> {
+    public takeQueueEntry(): Promise<SaltMineEntry> {
         let params = {
             MaxNumberOfMessages: 1,
             QueueUrl: this.queueUrl,
@@ -123,7 +122,7 @@ export class SaltMine
         return this.sqs.receiveMessage(params).promise().then(
             res=>
             {
-                let entry : WorkQueueEntry = null;
+                let entry : SaltMineEntry = null;
                 let handle : string | undefined = undefined;
 
                 if (res.Messages && res.Messages.length==1)
@@ -131,7 +130,7 @@ export class SaltMine
                     let body = res.Messages[0].Body;
                     if (body)
                     {
-                        entry = JSON.parse(body) as WorkQueueEntry;
+                        entry = JSON.parse(body) as SaltMineEntry;
                         handle = res.Messages[0].ReceiptHandle;
                     }
                 }
@@ -166,7 +165,7 @@ export class SaltMine
         })
     }
 
-    public addEntryToQueue(entry: WorkQueueEntry): Promise<any> {
+    public addEntryToQueue(entry: SaltMineEntry): Promise<any> {
         if (this.validEntry(entry))
         {
             entry._marker = SaltMine.SALT_MINE_MARKER;
@@ -199,12 +198,12 @@ export class SaltMine
         return this.sns.publish(params).promise();
     }
 
-    public processEntry(entry: WorkQueueEntry) : Promise<any>
+    public processEntry(entry: SaltMineEntry) : Promise<any>
     {
         let start : number = new Date().getTime();
         if (entry)
         {
-            let processor : WorkQueueProcessor = this.findProcessor(entry.type);
+            let processor : SaltMineProcessor = this.findProcessor(entry.type);
             if (processor)
             {
                 return processor.processEntry(entry).then(result=>{
@@ -214,7 +213,7 @@ export class SaltMine
                         source : entry,
                         result : result,
                         error : null
-                    } as WorkQueueResult;
+                    } as SaltMineResult;
                 })
                     .catch (err=>{
                         return {
@@ -223,7 +222,7 @@ export class SaltMine
                             source : entry,
                             result : null,
                             error : err
-                        } as WorkQueueResult;
+                        } as SaltMineResult;
                     });
             }
         }
@@ -236,38 +235,10 @@ export class SaltMine
             source : entry,
             result : null,
             error : "Missing entry or processor"
-        } as WorkQueueResult
+        } as SaltMineResult
     );
 
     }
 
-    public chainRunWorkQueueTasks(context: Context, minRemainTimeInSeconds: number) : Promise<any>
-    {
-        return this.takeAndProcessQueueEntry().then(res=>{
-            if (res==null)
-            {
-                Logger.info("Work queue is now empty - stopping");
-                return null;
-            }
-            else
-            {
-                // Check if we have enough time left to run another pull (minRemainTimeInSeconds seconds)
-                if (context.getRemainingTimeInMillis()>(minRemainTimeInSeconds*1000))
-                {
-                    Logger.info("Still have more than 90 seconds remaining (%d ms) - running again", context.getRemainingTimeInMillis());
-                    return this.chainRunWorkQueueTasks(context,minRemainTimeInSeconds);
-                }
-                else
-                {
-                    Logger.info("Less than 90 seconds remaining but still have work to do - refiring");
-                    return this.fireStartProcessingRequest();
-                }
-            }
-        })
-            .catch(err=>{
-                context.succeed("SQS Pull failed : "+err);
-            })
-
-    }
 
 }
