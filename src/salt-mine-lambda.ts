@@ -8,19 +8,19 @@ import {LambdaEventDetector} from "@bitblit/ratchet/dist/aws/lambda-event-detect
  */
 export class SaltMineLambda
 {
-    public static isSaltMineEvent(event:any) : boolean
+    public static isStartSaltMineEvent(event:any) : boolean
     {
         let rval : boolean = false;
         if (LambdaEventDetector.isValidSnsEvent(event)) {
             let msg = event.Records[0].Sns.Message;
-            rval = (msg && msg._marker && msg._marker == SaltMine.SALT_MINE_MARKER);
+            rval = (msg && msg.saltMine && msg.saltMine == SaltMine.SALT_MINE_START_MARKER);
         }
         return rval;
     }
 
     public static processSaltMineEvent(event: any, context: Context, callback: Callback, saltMine: SaltMine, minRemainTimeInSeconds: number)
     {
-        if (SaltMineLambda.isSaltMineEvent(event))
+        if (SaltMineLambda.isStartSaltMineEvent(event))
         {
             if (event.Records && event.Records.length>1)
             {

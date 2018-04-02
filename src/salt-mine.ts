@@ -10,7 +10,7 @@ import {SaltMineResult} from "./salt-mine-result";
  */
 export class SaltMine
 {
-    public static SALT_MINE_MARKER ="__SALT_MINE";
+    public static SALT_MINE_START_MARKER ="__START_SALT_MINE";
     private queueUrl : string;
     private notificationArn : string;
     private processors : SaltMineProcessor[];
@@ -168,7 +168,6 @@ export class SaltMine
     public addEntryToQueue(entry: SaltMineEntry): Promise<any> {
         if (this.validEntry(entry))
         {
-            entry._marker = SaltMine.SALT_MINE_MARKER;
             let params = {
                 DelaySeconds:0,
                 MessageBody: JSON.stringify(entry),
@@ -188,7 +187,7 @@ export class SaltMine
 
     public fireStartProcessingRequest() : Promise<any>
     {
-        let request = {'type':'START_PROCESSING', created: new Date().getTime()};
+        let request = {'saltMine':SaltMine.SALT_MINE_START_MARKER, created: new Date().getTime()};
 
         let params = {
             Message: JSON.stringify(request),
