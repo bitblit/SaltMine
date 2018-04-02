@@ -10,6 +10,8 @@ export class SaltMineLambda
 {
     public static isStartSaltMineEvent(event:any) : boolean
     {
+        // NOTE: A salt mine start event is NOT a salt mine entry (those are in SQS)
+        // It is a SNS message telling salt mine to start processing the SQS queue
         let rval : boolean = false;
         if (LambdaEventDetector.isValidSnsEvent(event)) {
             let msg = event.Records[0].Sns.Message;
