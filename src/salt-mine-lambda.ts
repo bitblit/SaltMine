@@ -14,8 +14,20 @@ export class SaltMineLambda
         // It is a SNS message telling salt mine to start processing the SQS queue
         let rval : boolean = false;
         if (LambdaEventDetector.isValidSnsEvent(event)) {
-            let msg = event.Records[0].Sns.Message;
-            rval = (msg && msg.saltMine && msg.saltMine == SaltMine.SALT_MINE_START_MARKER);
+            let msgString = event.Records[0].Sns.Message;
+            try {
+                if (msgString)
+                {
+                    let msg = JSON.parse(msgString);
+                    rval = (msg && msg.saltMine && msg.saltMine == SaltMine.SALT_MINE_START_MARKER);
+                }
+            }
+            catch (err)
+            {
+                Logger.debug("Error parsing message : "+err);
+            }
+
+
         }
         return rval;
     }
