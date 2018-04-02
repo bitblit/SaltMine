@@ -30,7 +30,6 @@ To use it, you first create:
 
 1. An SNS Topic.  You'll need its arn.
 2. An SQS Queue.  You'll need its url, and obviously you'll need to set up IAM correctly to read/write it.  
-The queue should be configured to notify the SNS topic upon arrival of an entry.
 3. A set of classes implementing WorkQueueProcessor.  These will be matched to submitted tasks by the
 "type" field, which must match the return value of "getType" in the processor.
 
