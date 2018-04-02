@@ -20,8 +20,11 @@ data and metadata, and must return a Promise<any>
 * You can tell it to take a task, perform it, and if there is still enough time remaining, do it again.
 
 That's about it.  SaltMine is really meant to be called from API Gateway Lambda's to queue up later tasks,
-and from a Cron Lambda to occasionally see if there is anything to be processed.  The trick is that it also
+and from a Cron Lambda to occasionally see if there is anything left to be processed.  The trick is that it also
 provides an SNS listening Lambda to autofire whenever a notification comes in that there is work to be done.
+
+Technically you could get away without the SNS handler if you are content to have your batch work only
+trigger on other events (like CRON).
 
 
 ## Usage
@@ -30,7 +33,7 @@ To use it, you first create:
 
 1. An SNS Topic.  You'll need its arn.
 2. An SQS Queue.  You'll need its url, and obviously you'll need to set up IAM correctly to read/write it.  
-3. A set of classes implementing WorkQueueProcessor.  These will be matched to submitted tasks by the
+3. A set of classes implementing SaltMineProcessor.  These will be matched to submitted tasks by the
 "type" field, which must match the return value of "getType" in the processor.
 
 
