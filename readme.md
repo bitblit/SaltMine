@@ -43,6 +43,32 @@ The lambda adapter is meant to be called from within a Lambda handler - you can 
 check whether the incoming event is a SNS-SaltMine event, and if so hand it off, otherwise continue to
 your other logic.
 
+## AWS Resource Creation
+
+### SNS Topic
+
+Create an SNS topic.  Note its ARN and name.  If you want to know any time the queue is being
+fired you can also add your email to it, but that's unnecessary except when debugging - you can
+pretty much just leave it alone.  This is only here as a Lambda signaling mechanism.
+
+Importantly - the SQS is NOT signed up to the topic.  First of all it can't be if you are using
+FIFO queues (At least as of 04/2018) and second of all because if it were, it would fire multiple
+requests (1 per incoming message) and we don't want to process the whole queue at once, we want to
+drain it one request at a time to respect throttling.
+
+### SQS
+
+Your mileage may vary, but I create mine like this :
+
+* FIFO Queue (Single run of each task, and tasks execute in the order they are enqueued)
+* Default Visibility Timeout:	5 minutes (If the Lambda fails unexpectedly it can be retried when it shows 
+back up in the message queue)
+* Message Retention Period:	20 minutes (If it hasn't been processed in 20 minutes its likely no longer relevant)
+* Maximum Message Size:	256 KB (Far bigger than your normal SaltMine message)
+* Receive Message Wait Time:	0 seconds (Any task can be picked up immediately)
+* Content based deduplication : On ()
+
+
 ## Installation
 `npm install @bitblit/saltmine`
 
