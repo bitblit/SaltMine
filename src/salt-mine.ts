@@ -185,6 +185,11 @@ export class SaltMine
         }
     }
 
+    public addEntriesToQueue(entries: SaltMineEntry[]): Promise<any[]> {
+        const promises: Promise<any>[] = entries.map( e=> this.addEntryToQueue(e));
+        return Promise.all(promises);
+    }
+
     public fireStartProcessingRequest() : Promise<any>
     {
         let request = {'saltMine':SaltMine.SALT_MINE_START_MARKER, created: new Date().getTime()};
@@ -205,7 +210,7 @@ export class SaltMine
             let processor : SaltMineProcessor = this.findProcessor(entry.type);
             if (processor)
             {
-                return processor.processEntry(entry).then(result=>{
+                return processor.processEntry(entry, this).then(result=>{
                     return {
                         startTimestamp : start,
                         finishTimestamp : new Date().getTime(),
