@@ -4,7 +4,7 @@ import {Logger} from "@bitblit/ratchet/dist/common/logger";
 
 export class EchoProcessor implements SaltMineProcessor
 {
-    getType() : string
+    getSaltMineType() : string
     {
         return 'echo';
     }

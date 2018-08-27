@@ -17,6 +17,15 @@ export class SaltMine
     private sqs : AWS.SQS;
     private sns : AWS.SNS;
 
+    // Given a list of objects, extracts the processors
+    public static findProcessors(src: any[]): SaltMineProcessor[] {
+        return src.filter(s => SaltMine.isSaltMineProcessor(s));
+    }
+
+    public static isSaltMineProcessor(src: any): boolean {
+        return (src && (typeof src['getSaltMineType'] === 'function') && (typeof src['processEntry'] === 'function'));
+    }
+
     public constructor(processors : SaltMineProcessor[],
                         queueUrl : string,
                         notificationArn : string,
@@ -49,7 +58,7 @@ export class SaltMine
         {
             throw "Processor is null";
         }
-        if (!p.getType() || p.getType().length==0)
+        if (!p.getSaltMineType() || p.getSaltMineType().length==0)
         {
             throw "Processor returns null/empty type";
         }
@@ -58,7 +67,7 @@ export class SaltMine
     private findProcessor(type:string) : SaltMineProcessor
     {
         let up: string = type.toUpperCase();
-        let filtered : SaltMineProcessor[] = this.processors.filter(p=>up==p.getType().toUpperCase());
+        let filtered : SaltMineProcessor[] = this.processors.filter(p=>up==p.getSaltMineType().toUpperCase());
         if (filtered.length==0)
         {
             Logger.warn("Found no matching processor for %s",up);
