@@ -3,6 +3,7 @@ import {Logger} from "@bitblit/ratchet/dist/common/logger";
 import {SaltMineProcessor} from "./salt-mine-processor";
 import {SaltMineEntry} from "./salt-mine-entry";
 import {SaltMineResult} from "./salt-mine-result";
+import {SaltMineEntryBatch} from './salt-mine-entry-batch';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -197,6 +198,26 @@ export class SaltMine
     public addEntriesToQueue(entries: SaltMineEntry[]): Promise<any[]> {
         const promises: Promise<any>[] = entries.map( e=> this.addEntryToQueue(e));
         return Promise.all(promises);
+    }
+
+    public processEntryBatch(batch: SaltMineEntryBatch) : Promise<boolean> {
+        if (batch) {
+            const submitPromises: Promise<any>[] = (batch.entries) ? batch.entries.map( e => this.addEntryToQueue(e)):[];
+            return Promise.all(submitPromises).then(results => {
+                Logger.info('Submitted %d items to queue', submitPromises.length);
+                if (batch.startProcessingAfterSubmission) {
+                    return this.fireStartProcessingRequest().then( startRes => {
+                        Logger.info('Started processing');
+                        return true;
+                    });
+                } else {
+                    Logger.info('Did not start processing');
+                    return true;
+                }
+            });
+        } else {
+            return Promise.resolve(false);
+        }
     }
 
     public fireStartProcessingRequest() : Promise<any>
