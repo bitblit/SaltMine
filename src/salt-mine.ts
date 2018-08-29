@@ -4,6 +4,7 @@ import {SaltMineProcessor} from "./salt-mine-processor";
 import {SaltMineEntry} from "./salt-mine-entry";
 import {SaltMineResult} from "./salt-mine-result";
 import {SaltMineEntryBatch} from './salt-mine-entry-batch';
+import {SaltMineQueueManager} from './salt-mine-queue-manager';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -12,11 +13,8 @@ import {SaltMineEntryBatch} from './salt-mine-entry-batch';
 export class SaltMine
 {
     public static SALT_MINE_START_MARKER ="__START_SALT_MINE";
-    private queueUrl : string;
-    private notificationArn : string;
+    private queueManager : SaltMineQueueManager;
     private processors : SaltMineProcessor[];
-    private sqs : AWS.SQS;
-    private sns : AWS.SNS;
 
     // Given a list of objects, extracts the processors
     public static findProcessors(src: any[]): SaltMineProcessor[] {
@@ -46,11 +44,9 @@ export class SaltMine
         {
             throw "Notification ARN is required";
         }
-        this.queueUrl = queueUrl;
-        this.notificationArn = notificationArn;
         this.processors = processors;
-        this.sqs = sqs;
-        this.sns = sns;
+        const processorNames: string[] = this.processors.map( p => p.getSaltMineType());
+        this.queueManager = new SaltMineQueueManager(processorNames, queueUrl, notificationArn, sqs, sns);
     }
 
     private validateProcessor(p: SaltMineProcessor)
@@ -81,32 +77,6 @@ export class SaltMine
         return filtered[0];
     }
 
-    private validType(type:string) : boolean
-    {
-        return this.findProcessor(type)!=null;
-    }
-
-    public createEntry(type: string, data: any = {}, metadata: any = {}) : SaltMineEntry
-    {
-        if (!this.validType(type))
-        {
-            Logger.warn("Tried to create invalid type : "+type);
-            return null;
-        }
-
-        return {
-            created: new Date().getTime(),
-            type: type,
-            data: data,
-            metadata: metadata
-
-        } as SaltMineEntry;
-    }
-
-    public validEntry(entry:SaltMineEntry) : boolean {
-        return (entry!=null && entry.type!=null && this.validType(entry.type));
-    }
-
     public takeAndProcessQueueEntry(): Promise<SaltMineEntry> {
         return this.takeQueueEntry().then(entry=>{
             if (entry)
@@ -121,116 +91,6 @@ export class SaltMine
         });
     }
 
-    public takeQueueEntry(): Promise<SaltMineEntry> {
-        let params = {
-            MaxNumberOfMessages: 1,
-            QueueUrl: this.queueUrl,
-            VisibilityTimeout: 300,
-            WaitTimeSeconds: 0
-        };
-
-        return this.sqs.receiveMessage(params).promise().then(
-            res=>
-            {
-                let entry : SaltMineEntry = null;
-                let handle : string | undefined = undefined;
-
-                if (res.Messages && res.Messages.length==1)
-                {
-                    let body = res.Messages[0].Body;
-                    if (body)
-                    {
-                        entry = JSON.parse(body) as SaltMineEntry;
-                        handle = res.Messages[0].ReceiptHandle;
-                    }
-                }
-
-                Logger.info("Entry was : %s", JSON.stringify(entry));
-
-                if (handle)
-                {
-                    Logger.debug("Removing entry from work queue");
-                    let delParams = {
-                        QueueUrl: this.queueUrl,
-                        ReceiptHandle: handle
-                    };
-                    return this.sqs.deleteMessage(delParams).promise().then(delResult=>{
-                        Logger.debug("Delete succeeded");
-                        return entry;
-                    })
-                        .catch(delErr=>{
-                            Logger.warn("Delete failed - task will likely re-run.  Err was : %s",delErr);
-                            return entry;
-                        })
-                }
-                else
-                {
-                    return entry;
-                }
-
-            }
-        ).catch(err=>{
-            Logger.warn("Error reading queue : "+err);
-            return null;
-        })
-    }
-
-    public addEntryToQueue(entry: SaltMineEntry): Promise<any> {
-        if (this.validEntry(entry))
-        {
-            let params = {
-                DelaySeconds:0,
-                MessageBody: JSON.stringify(entry),
-                MessageGroupId: entry.type,
-                QueueUrl: this.queueUrl
-            };
-
-            Logger.debug("Adding %s to queue", JSON.stringify(entry));
-            return this.sqs.sendMessage(params).promise();
-        }
-        else
-        {
-            Logger.warn("Not adding invalid entry to queue : %s",JSON.stringify(entry));
-            return Promise.resolve(null);
-        }
-    }
-
-    public addEntriesToQueue(entries: SaltMineEntry[]): Promise<any[]> {
-        const promises: Promise<any>[] = entries.map( e=> this.addEntryToQueue(e));
-        return Promise.all(promises);
-    }
-
-    public processEntryBatch(batch: SaltMineEntryBatch) : Promise<boolean> {
-        if (batch) {
-            const submitPromises: Promise<any>[] = (batch.entries) ? batch.entries.map( e => this.addEntryToQueue(e)):[];
-            return Promise.all(submitPromises).then(results => {
-                Logger.info('Submitted %d items to queue', submitPromises.length);
-                if (batch.startProcessingAfterSubmission) {
-                    return this.fireStartProcessingRequest().then( startRes => {
-                        Logger.info('Started processing');
-                        return true;
-                    });
-                } else {
-                    Logger.info('Did not start processing');
-                    return true;
-                }
-            });
-        } else {
-            return Promise.resolve(false);
-        }
-    }
-
-    public fireStartProcessingRequest() : Promise<any>
-    {
-        let request = {'saltMine':SaltMine.SALT_MINE_START_MARKER, created: new Date().getTime()};
-
-        let params = {
-            Message: JSON.stringify(request),
-            TopicArn: this.notificationArn
-        };
-
-        return this.sns.publish(params).promise();
-    }
 
     public processEntry(entry: SaltMineEntry) : Promise<any>
     {
@@ -273,6 +133,38 @@ export class SaltMine
     );
 
     }
+
+
+    public createEntry(type: string, data: any = {}, metadata: any = {}) : SaltMineEntry
+    {
+        return this.queueManager.createEntry(type, data, metadata);
+    }
+
+    public validEntry(entry:SaltMineEntry) : boolean {
+        return this.queueManager.validEntry(entry);
+    }
+
+    public takeQueueEntry(): Promise<SaltMineEntry> {
+        return this.queueManager.takeQueueEntry();
+    }
+
+    public addEntryToQueue(entry: SaltMineEntry): Promise<any> {
+        return this.queueManager.addEntryToQueue(entry);
+    }
+
+    public addEntriesToQueue(entries: SaltMineEntry[]): Promise<any[]> {
+        return this.queueManager.addEntriesToQueue(entries);
+    }
+
+    public processEntryBatch(batch: SaltMineEntryBatch) : Promise<boolean> {
+        return this.queueManager.processEntryBatch(batch);
+    }
+
+    public fireStartProcessingRequest() : Promise<any>
+    {
+        return this.queueManager.fireStartProcessingRequest();
+    }
+
 
 
 }
