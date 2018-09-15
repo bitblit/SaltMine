@@ -33,9 +33,13 @@ To use it, you first create:
 
 1. An SNS Topic.  You'll need its arn.
 2. An SQS Queue.  You'll need its url, and obviously you'll need to set up IAM correctly to read/write it.  
-3. A set of classes implementing SaltMineProcessor.  These will be matched to submitted tasks by the
-"type" field, which must match the return value of "getType" in the processor.
+3. A set of functions implementing SaltMineFunction.  These will be matched to submitted tasks by the
+"type" field, which must match the name of the function.
+4. An optional "context".  This context can be anything (I use ReflectiveInjector) but holds things that your
+functions might need.  They can reach it by calling saltMine.fetchContext();
 
+(Note : this used to be a class architecture pre-0.1.0, but I switched to functions with an optional context as
+a better approach)
 
 Once that is set up, you create a SaltMine instance by passing it the queue url, notification arn, and
 set of processors (and optionally the SNS and SQS instances).  You can then submit new tasks using that

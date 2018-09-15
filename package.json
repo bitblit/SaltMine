@@ -33,7 +33,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@bitblit/ratchet": "0.0.80"
+    "@bitblit/ratchet": "0.0.87"
   },
   "devDependencies": {
     "@types/aws-lambda": "0.0.31",

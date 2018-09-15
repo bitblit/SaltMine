@@ -2,6 +2,7 @@ import {Logger} from "@bitblit/ratchet/dist/common/logger";
 import {Callback, Context} from "aws-lambda";
 import {SaltMine} from "./salt-mine";
 import {LambdaEventDetector} from "@bitblit/ratchet/dist/aws/lambda-event-detector";
+import {SaltMineQueueManager} from './salt-mine-queue-manager';
 
 /**
  * Lambda Extensions for SaltMine
@@ -19,7 +20,7 @@ export class SaltMineLambda
                 if (msgString)
                 {
                     let msg = JSON.parse(msgString);
-                    rval = (msg && msg.saltMine && msg.saltMine == SaltMine.SALT_MINE_START_MARKER);
+                    rval = (msg && msg.saltMine && msg.saltMine == SaltMineQueueManager.SALT_MINE_START_MARKER);
                 }
             }
             catch (err)
@@ -32,7 +33,7 @@ export class SaltMineLambda
         return rval;
     }
 
-    public static processSaltMineEvent(event: any, context: Context, callback: Callback, saltMine: SaltMine, minRemainTimeInSeconds: number)
+    public static processSaltMineEvent(event: any, context: Context, callback: Callback, saltMine: SaltMine<any>, minRemainTimeInSeconds: number)
     {
         if (SaltMineLambda.isStartSaltMineEvent(event))
         {
@@ -57,7 +58,7 @@ export class SaltMineLambda
 
     }
 
-    public static chainRunSaltMineTasks(saltMine: SaltMine, context: Context, minRemainTimeInSeconds: number) : Promise<any>
+    public static chainRunSaltMineTasks(saltMine: SaltMine<any>, context: Context, minRemainTimeInSeconds: number) : Promise<any>
     {
         return saltMine.takeAndProcessQueueEntry().then(res=>{
             if (res==null)

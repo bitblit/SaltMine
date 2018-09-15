@@ -1,17 +1,10 @@
 import {SaltMineEntry} from "./salt-mine-entry";
-import {SaltMineProcessor} from "./salt-mine-processor";
 import {Logger} from "@bitblit/ratchet/dist/common/logger";
+import {SaltMineFunction} from './salt-mine-function';
 
-export class EchoProcessor implements SaltMineProcessor
-{
-    getSaltMineType() : string
-    {
-        return 'echo';
-    }
-
-    processEntry(entry: SaltMineEntry) : Promise<any>
-    {
-        Logger.info("Echo processing : %s",JSON.stringify(entry));
-        return Promise.resolve(entry);
-    }
+const saltMineEcho: SaltMineFunction<SaltMineEntry>  = function(entry: SaltMineEntry) : Promise<SaltMineEntry> {
+    Logger.info("Echo processing : %j", entry);
+    return Promise.resolve(entry);
 }
+
+export default saltMineEcho;

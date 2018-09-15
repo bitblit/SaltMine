@@ -1,41 +1,30 @@
 import * as AWS from "aws-sdk";
 import {Logger} from "@bitblit/ratchet/dist/common/logger";
-import {SaltMineProcessor} from "./salt-mine-processor";
 import {SaltMineEntry} from "./salt-mine-entry";
 import {SaltMineResult} from "./salt-mine-result";
 import {SaltMineEntryBatch} from './salt-mine-entry-batch';
 import {SaltMineQueueManager} from './salt-mine-queue-manager';
+import {SaltMineFunction} from './salt-mine-function';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
  * thing at the same time.
  */
-export class SaltMine
+export class SaltMine<T>
 {
-    public static SALT_MINE_START_MARKER ="__START_SALT_MINE";
     private queueManager : SaltMineQueueManager;
-    private processors : SaltMineProcessor[];
 
-    // Given a list of objects, extracts the processors
-    public static findProcessors(src: any[]): SaltMineProcessor[] {
-        return src.filter(s => SaltMine.isSaltMineProcessor(s));
-    }
-
-    public static isSaltMineProcessor(src: any): boolean {
-        return (src && (typeof src['getSaltMineType'] === 'function') && (typeof src['processEntry'] === 'function'));
-    }
-
-    public constructor(processors : SaltMineProcessor[],
+    public constructor(private functions : SaltMineFunction<any> [],
                         queueUrl : string,
                         notificationArn : string,
+                        private context: T = null,
                         sqs: AWS.SQS = new AWS.SQS({apiVersion: '2012-11-05',region: 'us-east-1'}),
                         sns : AWS.SNS = new AWS.SNS({apiVersion: '2012-11-05',region: 'us-east-1'})) {
         Logger.info("Creating SaltMineService");
-        if (!processors || processors.length==0)
+        if (!functions || Object.keys(functions).length==0)
         {
-            throw "Cannot create with no processors";
+            throw "Cannot create with no functions";
         }
-        processors.forEach(p=>this.validateProcessor(p));
         if (!queueUrl)
         {
             throw "Queue url is required";
@@ -44,47 +33,32 @@ export class SaltMine
         {
             throw "Notification ARN is required";
         }
-        this.processors = processors;
-        const processorNames: string[] = this.processors.map( p => p.getSaltMineType());
-        this.queueManager = new SaltMineQueueManager(processorNames, queueUrl, notificationArn, sqs, sns);
+        this.queueManager = new SaltMineQueueManager(this.functionNames(), queueUrl, notificationArn, sqs, sns);
     }
 
-    private validateProcessor(p: SaltMineProcessor)
-    {
-        if (!p)
-        {
-            throw "Processor is null";
-        }
-        if (!p.getSaltMineType() || p.getSaltMineType().length==0)
-        {
-            throw "Processor returns null/empty type";
-        }
+    public functionNames() : string[] {
+        return this.functions.map(f => f.name);
     }
 
-    private findProcessor(type:string) : SaltMineProcessor
+    private findFunction(type:string) : SaltMineFunction<any>
     {
         let up: string = type.toUpperCase();
-        let filtered : SaltMineProcessor[] = this.processors.filter(p=>up==p.getSaltMineType().toUpperCase());
-        if (filtered.length==0)
-        {
-            Logger.warn("Found no matching processor for %s",up);
+        let filtered : SaltMineFunction<any>[] = this.functions.filter(p=> up==p.name.toUpperCase());
+        if (filtered.length==0) {
+            Logger.warn("Found no matching function for %s",up);
             return null;
-        }
-        else if (filtered.length>1)
+        } else if (filtered.length>1)
         {
-            Logger.warn("Found %d matching processors for %s, returning first", filtered.length, up);
+            Logger.warn("Found %d matching function for %s, returning first", filtered.length, up);
         }
         return filtered[0];
     }
 
     public takeAndProcessQueueEntry(): Promise<SaltMineEntry> {
         return this.takeQueueEntry().then(entry=>{
-            if (entry)
-            {
+            if (entry) {
                 return this.processEntry(entry); // Max 1 minute
-            }
-            else
-            {
+            } else {
                 Logger.info("Skipping process - no entry found");
                 return null;
             }
@@ -92,24 +66,25 @@ export class SaltMine
     }
 
 
-    public processEntry(entry: SaltMineEntry) : Promise<any>
+    public async processEntry(entry: SaltMineEntry) : Promise<any>
     {
         let start : number = new Date().getTime();
-        if (entry)
-        {
-            let processor : SaltMineProcessor = this.findProcessor(entry.type);
-            if (processor)
+        if (entry) {
+            let fn : SaltMineFunction<any> = this.findFunction(entry.type);
+            if (fn)
             {
-                return processor.processEntry(entry, this).then(result=>{
-                    return {
+                try {
+                const result: any = await fn(entry, this);
+
+                return {
                         startTimestamp : start,
                         finishTimestamp : new Date().getTime(),
                         source : entry,
                         result : result,
                         error : null
                     } as SaltMineResult;
-                })
-                    .catch (err=>{
+                } catch (err)
+                {
                         return {
                             startTimestamp : start,
                             finishTimestamp : new Date().getTime(),
@@ -117,7 +92,7 @@ export class SaltMine
                             result : null,
                             error : err
                         } as SaltMineResult;
-                    });
+                }
             }
         }
 
@@ -163,6 +138,10 @@ export class SaltMine
     public fireStartProcessingRequest() : Promise<any>
     {
         return this.queueManager.fireStartProcessingRequest();
+    }
+
+    public fetchContext() : T {
+        return this.context;
     }
 
 

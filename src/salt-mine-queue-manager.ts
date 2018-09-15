@@ -1,8 +1,6 @@
 import * as AWS from "aws-sdk";
 import {Logger} from "@bitblit/ratchet/dist/common/logger";
-import {SaltMineProcessor} from "./salt-mine-processor";
 import {SaltMineEntry} from "./salt-mine-entry";
-import {SaltMineResult} from "./salt-mine-result";
 import {SaltMineEntryBatch} from './salt-mine-entry-batch';
 
 /**
@@ -15,44 +13,27 @@ import {SaltMineEntryBatch} from './salt-mine-entry-batch';
 export class SaltMineQueueManager
 {
     public static SALT_MINE_START_MARKER ="__START_SALT_MINE";
-    private queueUrl : string;
-    private notificationArn : string;
-    private sqs : AWS.SQS;
-    private sns : AWS.SNS;
-    private processorNames: string[];
 
-    public static isSaltMineProcessor(src: any): boolean {
-        return (src && (typeof src['getSaltMineType'] === 'function') && (typeof src['processEntry'] === 'function'));
-    }
-
-    public constructor(processorNames: string[],
-                        queueUrl : string,
-                        notificationArn : string,
-                        sqs: AWS.SQS = new AWS.SQS({apiVersion: '2012-11-05',region: 'us-east-1'}),
-                        sns : AWS.SNS = new AWS.SNS({apiVersion: '2012-11-05',region: 'us-east-1'})) {
-        Logger.info("Creating SaltMineService");
-        if (!processorNames || processorNames.length==0)
-        {
-            throw "Cannot create with no processors";
+    public constructor(private functionNames: string[],
+                        private queueUrl : string,
+                        private notificationArn : string,
+                        private sqs: AWS.SQS = new AWS.SQS({apiVersion: '2012-11-05',region: 'us-east-1'}),
+                        private sns : AWS.SNS = new AWS.SNS({apiVersion: '2012-11-05',region: 'us-east-1'})) {
+        Logger.info("Creating SaltMineService with names %j", functionNames);
+        if (!functionNames || functionNames.length==0) {
+            throw "Cannot create with no functions";
         }
-        if (!queueUrl)
-        {
+        if (!queueUrl) {
             throw "Queue url is required";
         }
-        if (!notificationArn)
-        {
+        if (!notificationArn) {
             throw "Notification ARN is required";
         }
-        this.queueUrl = queueUrl;
-        this.notificationArn = notificationArn;
-        this.processorNames = processorNames;
-        this.sqs = sqs;
-        this.sns = sns;
     }
 
     private validType(type:string) : boolean
     {
-        return this.processorNames.indexOf(type)>-1;
+        return this.functionNames.indexOf(type)>-1;
     }
 
     public createEntry(type: string, data: any = {}, metadata: any = {}) : SaltMineEntry
