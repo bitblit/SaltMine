@@ -32,11 +32,12 @@ export class SaltMineFactory
         }
 
         const starter: SaltMineStarter = new SaltMineStarter(config);
+        const queueManager: SaltMineQueueManager = new SaltMineQueueManager(starter);
 
         const rval: SaltMine = {
             starter: starter,
-            queueManager: new SaltMineQueueManager(starter),
-            handler: new SaltMineHandler(starter),
+            queueManager: queueManager,
+            handler: new SaltMineHandler(starter,queueManager)
         } as SaltMine;
 
         return rval;

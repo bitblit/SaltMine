@@ -7,6 +7,7 @@ import {DurationRatchet} from '@bitblit/ratchet/dist/common/duration-ratchet';
 import {SaltMineConstants} from './salt-mine-constants';
 import {SaltMineStarter} from './salt-mine-starter';
 import {SaltMineProcessor} from './salt-mine-processor';
+import {SaltMineQueueManager} from './salt-mine-queue-manager';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -15,7 +16,7 @@ import {SaltMineProcessor} from './salt-mine-processor';
 export class SaltMineHandler
 {
 
-    constructor(private starter: SaltMineStarter) {
+    constructor(private starter: SaltMineStarter, private queueManager: SaltMineQueueManager) {
         Logger.info('Starting Salt Mine processor');
     }
 
@@ -132,7 +133,7 @@ export class SaltMineHandler
                     rval.push(false);
                 } else {
                     const start: number = new Date().getTime();
-                    rval.push(await processor(e));
+                    rval.push(await processor(e, this.queueManager));
                     const end: number = new Date().getTime();
                     Logger.info('Processed %j in %s', e, DurationRatchet.formatMsDuration(end-start, true));
                 }
