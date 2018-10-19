@@ -14,7 +14,8 @@ than one in a call if I can get away with it.
 
 Enter SaltMine.  It is a class that allows you to:
 * Define a set of processors that can handle these tasks.  They'll get handed an object with arbitrary
-data and metadata, and must return a Promise<any>
+data and metadata, and must return a Promise<boolean>.  There is no point in returning anything more
+complicated since nothing is waiting on the return value.  Success or not, that is the question.
 * You can use it to enqueue a task for later processing
 * You can tell it to take a queued task (if any) and perform it
 * You can tell it to take a task, perform it, and if there is still enough time remaining, do it again.
@@ -24,7 +25,8 @@ and from a Cron Lambda to occasionally see if there is anything left to be proce
 provides an SNS listening Lambda to autofire whenever a notification comes in that there is work to be done.
 
 Technically you could get away without the SNS handler if you are content to have your batch work only
-trigger on other events (like CRON).
+trigger on other events (like CRON), but I haven't really allowed that option in here since I never work 
+that way.
 
 
 ## Usage
@@ -34,9 +36,8 @@ To use it, you first create:
 1. An SNS Topic.  You'll need its arn.
 2. An SQS Queue.  You'll need its url, and obviously you'll need to set up IAM correctly to read/write it.  
 3. A set of functions implementing SaltMineFunction.  These will be matched to submitted tasks by the
-"type" field, which must match the name of the function.
-4. An optional "context".  This context can be anything (I use ReflectiveInjector) but holds things that your
-functions might need.  They can reach it by calling saltMine.fetchContext();
+"type" field, which must match the name of the function.  Salt Mine Function is defined as
+**async fn(e:SaltMineEntry): Promise<boolean>**
 
 (Note : this used to be a class architecture pre-0.1.0, but I switched to functions with an optional context as
 a better approach)
