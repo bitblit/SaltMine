@@ -8,6 +8,9 @@ export interface SaltMineConfig {
     queueUrl : string;
     notificationArn : string;
 
+    chainRun: boolean;
+    chainRunMinRemainTimeInSeconds: number;
+
     sqs: AWS.SQS;
     sns: AWS.SNS;
 }

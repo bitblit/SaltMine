@@ -53,7 +53,7 @@ export class SaltMineHandler
     }
 
     // All it does is trigger a pull of the SQS queue
-    public async processSaltMineSNSEvent(event: any, context: Context, chainRun: boolean, minRemainTimeInSeconds: number): Promise<boolean> {
+    public async processSaltMineSNSEvent(event: any, context: Context): Promise<boolean> {
         let rval: boolean = false;
         if (!this.isSaltMineStartSnsEvent(event)) {
             Logger.warn('Tried to process non-salt mine start event : %j returning false', event);
@@ -63,12 +63,12 @@ export class SaltMineHandler
             rval = true;
             results.forEach( b => rval = rval && b); // True if all succeed or empty
 
-            if (chainRun && minRemainTimeInSeconds > 0) {
+            if (this.starter.getConfig().chainRun && this.starter.getConfig().chainRunMinRemainTimeInSeconds > 0) {
                 if (results.length == 0) {
                     Logger.info('Salt mine queue now empty - stopping');
-                } else if (context.getRemainingTimeInMillis()>(minRemainTimeInSeconds*1000)) {
+                } else if (context.getRemainingTimeInMillis()>(this.starter.getConfig().chainRunMinRemainTimeInSeconds*1000)) {
                     Logger.info("Still have more than 90 seconds remaining (%d ms) - running again", context.getRemainingTimeInMillis());
-                    rval = rval && await this.processSaltMineSNSEvent(event, context, chainRun, minRemainTimeInSeconds);
+                    rval = rval && await this.processSaltMineSNSEvent(event, context);
                 } else {
                     Logger.info("Less than 90 seconds remaining but still have work to do - refiring");
                     const refireResult: string = await this.starter.fireStartProcessingRequest();
