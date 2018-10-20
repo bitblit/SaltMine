@@ -1,6 +1,6 @@
-import * as AWS from "aws-sdk";
-import {Logger} from "@bitblit/ratchet/dist/common/logger";
-import {SaltMineEntry} from "./salt-mine-entry";
+import * as AWS from 'aws-sdk';
+import {Logger} from '@bitblit/ratchet/dist/common/logger';
+import {SaltMineEntry} from './salt-mine-entry';
 import {Context, SNSEvent} from 'aws-lambda';
 import {LambdaEventDetector} from '@bitblit/ratchet/dist/aws/lambda-event-detector';
 import {DurationRatchet} from '@bitblit/ratchet/dist/common/duration-ratchet';
@@ -13,14 +13,28 @@ import {SaltMineQueueUtil} from './salt-mine-queue-util';
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
  * thing at the same time.
  */
-export class SaltMineHandler
-{
+export class SaltMineHandler {
 
     constructor(private cfg: SaltMineConfig,
                 private processors: Map<string, SaltMineProcessor>,
                 private chainRun: boolean = true,
                 private chainRunMinRemainTimeInSeconds: number = 90) {
         Logger.info('Starting Salt Mine processor');
+
+        if (!cfg || !cfg.sqs || !cfg.sns || !cfg.queueUrl || !cfg.notificationArn || !cfg.validTypes) {
+            throw new Error('Invalid salt mine config : ' + JSON.stringify(cfg));
+        }
+
+        if (!processors) {
+            throw new Error('You must supply processors');
+        }
+
+        let allMatch: boolean = true;
+        cfg.validTypes.forEach(s => allMatch = allMatch && !!processors.get(s));
+
+        if (!allMatch || (processors.size !== cfg.validTypes.length)) {
+            throw new Error('Mismatch between processors and config valid types');
+        }
     }
 
     public isSaltMineStartSnsEvent(event: any): boolean {
@@ -38,14 +52,14 @@ export class SaltMineHandler
     public isSaltMineSqsMessage(message: AWS.SQS.Types.ReceiveMessageResult): boolean {
         let rval: boolean = false;
         if (message && message.Messages && message.Messages.length > 0) {
-            const missingFlagField: any = message.Messages.find( se => {
-               try {
-                   const parsed: any = JSON.parse(se.Body);
-                   return !parsed[SaltMineConstants.SALT_MINE_SQS_TYPE_FIELD];
-               } catch (err) {
-                   Logger.warn('Failed to parse message : %j %s', se, err);
-                   return true;
-               }
+            const missingFlagField: any = message.Messages.find(se => {
+                try {
+                    const parsed: any = JSON.parse(se.Body);
+                    return !parsed[SaltMineConstants.SALT_MINE_SQS_TYPE_FIELD];
+                } catch (err) {
+                    Logger.warn('Failed to parse message : %j %s', se, err);
+                    return true;
+                }
             });
             if (missingFlagField) {
                 Logger.silly('Found at least one message missing a type field');
@@ -63,19 +77,19 @@ export class SaltMineHandler
             Logger.warn('Tried to process non-salt mine start event : %j returning false', event);
             rval = false;
         } else {
-            const results:boolean[] = await this.takeAndProcessSingleSaltMineSQSMessage();
+            const results: boolean[] = await this.takeAndProcessSingleSaltMineSQSMessage();
             rval = true;
-            results.forEach( b => rval = rval && b); // True if all succeed or empty
+            results.forEach(b => rval = rval && b); // True if all succeed or empty
 
             if (this.chainRun && this.chainRunMinRemainTimeInSeconds > 0) {
                 if (results.length == 0) {
                     Logger.info('Salt mine queue now empty - stopping');
-                } else if (context.getRemainingTimeInMillis()>(this.chainRunMinRemainTimeInSeconds*1000)) {
-                    Logger.info("Still have more than %d seconds remaining (%d ms) - running again", this.chainRunMinRemainTimeInSeconds,
+                } else if (context.getRemainingTimeInMillis() > (this.chainRunMinRemainTimeInSeconds * 1000)) {
+                    Logger.info('Still have more than %d seconds remaining (%d ms) - running again', this.chainRunMinRemainTimeInSeconds,
                         context.getRemainingTimeInMillis());
                     rval = rval && await this.processSaltMineSNSEvent(event, context);
                 } else {
-                    Logger.info("Less than 90 seconds remaining but still have work to do - refiring");
+                    Logger.info('Less than 90 seconds remaining but still have work to do - refiring');
                     const refireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
                 }
             }
@@ -95,7 +109,7 @@ export class SaltMineHandler
         const message: AWS.SQS.ReceiveMessageResult = await this.cfg.sqs.receiveMessage(params).promise();
         const rval: SaltMineEntry[] = [];
         if (message && message.Messages) {
-            for (let i=0; i < message.Messages.length; i++) {
+            for (let i = 0; i < message.Messages.length; i++) {
                 const m: AWS.SQS.Message = message.Messages[i];
                 try {
                     const parsedBody: SaltMineEntry = JSON.parse(m.Body) as SaltMineEntry;
@@ -128,7 +142,7 @@ export class SaltMineHandler
 
         // Do them one at a time since SaltMine is meant to throttle.  Also, it should really
         // only be one per pull anyway
-        for (let i=0 ; i < entries.length ; i++) {
+        for (let i = 0; i < entries.length; i++) {
             const e: SaltMineEntry = entries[i];
             try {
                 const processor: SaltMineProcessor = this.processors.get(e.type);
@@ -139,7 +153,7 @@ export class SaltMineHandler
                     const start: number = new Date().getTime();
                     rval.push(await processor(e, this.cfg));
                     const end: number = new Date().getTime();
-                    Logger.info('Processed %j in %s', e, DurationRatchet.formatMsDuration(end-start, true));
+                    Logger.info('Processed %j in %s', e, DurationRatchet.formatMsDuration(end - start, true));
                 }
             } catch (err) {
                 Logger.error('Failed while processing salt mine entry (returning false): %j : %s', e, err, err);
@@ -154,8 +168,6 @@ export class SaltMineHandler
 
         return rval;
     }
-
-
 
 
 }

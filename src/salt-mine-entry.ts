@@ -1,5 +1,4 @@
-export interface SaltMineEntry
-{
+export interface SaltMineEntry {
     created: number;
     type: string;
     data: any;

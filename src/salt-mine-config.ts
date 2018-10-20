@@ -4,8 +4,8 @@ export interface SaltMineConfig {
 
     validTypes: string[];
 
-    queueUrl : string;
-    notificationArn : string;
+    queueUrl: string;
+    notificationArn: string;
 
     sqs: AWS.SQS;
     sns: AWS.SNS;
