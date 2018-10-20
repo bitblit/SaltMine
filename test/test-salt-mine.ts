@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import {SaltMineEntry} from "../src/salt-mine-entry";
 import {Logger} from '@bitblit/ratchet/dist/common/logger';
-import {SaltMineConfig} from '../src/salt-mine-config';
+import {SaltMineQueueConfig} from '../src/salt-mine-config';
 import {SaltMineFactory} from '../src/salt-mine-factory';
 import {SaltMineProcessor} from '../src/salt-mine-processor';
 import {SaltMine} from '../src/salt-mine';
@@ -13,12 +13,12 @@ describe('#createEntry', function() {
         processors.set('b', (entry: SaltMineEntry) : Promise<boolean> => {  Logger.info('Called b'); return Promise.resolve(true);});
 
 
-        const cfg : SaltMineConfig = {
+        const cfg : SaltMineQueueConfig = {
             processors: processors,
             queueUrl: 'q',
             notificationArn: 'n'
 
-        } as SaltMineConfig;
+        } as SaltMineQueueConfig;
 
         const mine: SaltMine = SaltMineFactory.createSaltMine(cfg);
 

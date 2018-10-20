@@ -5,9 +5,9 @@ import {Context, SNSEvent} from 'aws-lambda';
 import {LambdaEventDetector} from '@bitblit/ratchet/dist/aws/lambda-event-detector';
 import {DurationRatchet} from '@bitblit/ratchet/dist/common/duration-ratchet';
 import {SaltMineConstants} from './salt-mine-constants';
-import {SaltMineStarter} from './salt-mine-starter';
 import {SaltMineProcessor} from './salt-mine-processor';
-import {SaltMineQueueManager} from './salt-mine-queue-manager';
+import {SaltMineConfig} from './salt-mine-config';
+import {SaltMineQueueUtil} from './salt-mine-queue-util';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -16,7 +16,10 @@ import {SaltMineQueueManager} from './salt-mine-queue-manager';
 export class SaltMineHandler
 {
 
-    constructor(private starter: SaltMineStarter, private queueManager: SaltMineQueueManager) {
+    constructor(private cfg: SaltMineConfig,
+                private processors: Map<string, SaltMineProcessor>,
+                private chainRun: boolean = true,
+                private chainRunMinRemainTimeInSeconds: number = 90) {
         Logger.info('Starting Salt Mine processor');
     }
 
@@ -64,15 +67,16 @@ export class SaltMineHandler
             rval = true;
             results.forEach( b => rval = rval && b); // True if all succeed or empty
 
-            if (this.starter.getConfig().chainRun && this.starter.getConfig().chainRunMinRemainTimeInSeconds > 0) {
+            if (this.chainRun && this.chainRunMinRemainTimeInSeconds > 0) {
                 if (results.length == 0) {
                     Logger.info('Salt mine queue now empty - stopping');
-                } else if (context.getRemainingTimeInMillis()>(this.starter.getConfig().chainRunMinRemainTimeInSeconds*1000)) {
-                    Logger.info("Still have more than 90 seconds remaining (%d ms) - running again", context.getRemainingTimeInMillis());
+                } else if (context.getRemainingTimeInMillis()>(this.chainRunMinRemainTimeInSeconds*1000)) {
+                    Logger.info("Still have more than %d seconds remaining (%d ms) - running again", this.chainRunMinRemainTimeInSeconds,
+                        context.getRemainingTimeInMillis());
                     rval = rval && await this.processSaltMineSNSEvent(event, context);
                 } else {
                     Logger.info("Less than 90 seconds remaining but still have work to do - refiring");
-                    const refireResult: string = await this.starter.fireStartProcessingRequest();
+                    const refireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
                 }
             }
 
@@ -83,12 +87,12 @@ export class SaltMineHandler
     private async takeEntryFromSaltMineQueue(): Promise<SaltMineEntry[]> {
         let params = {
             MaxNumberOfMessages: 1,
-            QueueUrl: this.starter.getConfig().queueUrl,
+            QueueUrl: this.cfg.queueUrl,
             VisibilityTimeout: 300,
             WaitTimeSeconds: 0
         };
 
-        const message: AWS.SQS.ReceiveMessageResult = await this.starter.getConfig().sqs.receiveMessage(params).promise();
+        const message: AWS.SQS.ReceiveMessageResult = await this.cfg.sqs.receiveMessage(params).promise();
         const rval: SaltMineEntry[] = [];
         if (message && message.Messages) {
             for (let i=0; i < message.Messages.length; i++) {
@@ -103,10 +107,10 @@ export class SaltMineHandler
 
                     Logger.debug('Removing message from queue');
                     let delParams = {
-                        QueueUrl: this.starter.getConfig().queueUrl,
+                        QueueUrl: this.cfg.queueUrl,
                         ReceiptHandle: m.ReceiptHandle
                     };
-                    const delResult: any = await this.starter.getConfig().sqs.deleteMessage(delParams).promise();
+                    const delResult: any = await this.cfg.sqs.deleteMessage(delParams).promise();
                 } catch (err) {
                     Logger.warn('Error parsing message, dropping : %j', m);
                 }
@@ -127,13 +131,13 @@ export class SaltMineHandler
         for (let i=0 ; i < entries.length ; i++) {
             const e: SaltMineEntry = entries[i];
             try {
-                const processor: SaltMineProcessor = this.starter.getConfig().processors.get(e.type);
+                const processor: SaltMineProcessor = this.processors.get(e.type);
                 if (!processor) {
                     Logger.warn('Found no processor for salt mine entry : %j (returning false)', e);
                     rval.push(false);
                 } else {
                     const start: number = new Date().getTime();
-                    rval.push(await processor(e, this.queueManager));
+                    rval.push(await processor(e, this.cfg));
                     const end: number = new Date().getTime();
                     Logger.info('Processed %j in %s', e, DurationRatchet.formatMsDuration(end-start, true));
                 }
@@ -145,7 +149,7 @@ export class SaltMineHandler
 
         // If we processed, immediately refire
         if (entries.length > 0) {
-            const refireResult: string = await this.starter.fireStartProcessingRequest();
+            const refireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
         }
 
         return rval;
