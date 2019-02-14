@@ -19,7 +19,7 @@ export class SaltMineHandler {
                 private processors: Map<string, SaltMineProcessor>,
                 private chainRun: boolean = true,
                 private chainRunMinRemainTimeInSeconds: number = 90) {
-        Logger.info('Starting Salt Mine processor');
+        Logger.silly('Starting Salt Mine processor');
 
         if (!cfg || !cfg.sqs || !cfg.sns || !cfg.queueUrl || !cfg.notificationArn || !cfg.validTypes) {
             throw new Error('Invalid salt mine config : ' + JSON.stringify(cfg));
@@ -108,7 +108,7 @@ export class SaltMineHandler {
 
         const message: AWS.SQS.ReceiveMessageResult = await this.cfg.sqs.receiveMessage(params).promise();
         const rval: SaltMineEntry[] = [];
-        if (message && message.Messages) {
+        if (message && message.Messages && message.Messages.length>0) {
             for (let i = 0; i < message.Messages.length; i++) {
                 const m: AWS.SQS.Message = message.Messages[i];
                 try {
@@ -130,7 +130,7 @@ export class SaltMineHandler {
                 }
             }
         } else {
-            Logger.warn('Weird - received no message or empty message');
+            Logger.debug('No messages found (likely end of recursion)');
         }
 
         return rval;
@@ -151,7 +151,13 @@ export class SaltMineHandler {
                     rval.push(false);
                 } else {
                     const start: number = new Date().getTime();
-                    rval.push(await processor(e, this.cfg));
+                    try{
+                        await processor(e, this.cfg);
+                        rval.push(true);
+                    } catch(err) {
+                        Logger.warn('Error processing: %s',err,err);
+                        rval.push(false);
+                    }
                     const end: number = new Date().getTime();
                     Logger.info('Processed %j in %s', e, DurationRatchet.formatMsDuration(end - start, true));
                 }

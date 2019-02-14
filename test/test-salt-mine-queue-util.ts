@@ -8,13 +8,11 @@ import {SaltMineQueueUtil} from '../src/salt-mine-queue-util';
 describe('#createEntry', function () {
     it('should make sure a processor exists', function () {
         const processors: Map<string, SaltMineProcessor> = new Map<string, SaltMineProcessor>();
-        processors.set('a', (entry: SaltMineEntry): Promise<boolean> => {
+        processors.set('a', async (entry: SaltMineEntry): Promise<void> => {
             Logger.info('Called a');
-            return Promise.resolve(true);
         });
-        processors.set('b', (entry: SaltMineEntry): Promise<boolean> => {
+        processors.set('b', async (entry: SaltMineEntry): Promise<void> => {
             Logger.info('Called b');
-            return Promise.resolve(true);
         });
 
 
