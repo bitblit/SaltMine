@@ -1,6 +1,6 @@
 {
   "name": "@bitblit/saltmine",
-  "version": "0.0.0",
+  "version": "0.3.0",
   "description": "A system for automating processing of work on lambda using a combo of Lambda/SQS/SNS efficiently",
   "main": "./dist/index",
   "typings": "./dist/index",
@@ -10,11 +10,12 @@
   "author": "Christopher Weiss <bitblit@gmail.com>",
   "config": {},
   "scripts": {
-    "prepublishOnly": "npm run compile",
-    "compile": "npm run clean && tsc",
+    "prepublishOnly": "yarn run compile",
+    "compile": "yarn run clean && tsc",
     "watch": "tsc -w .",
     "clean": "rm -Rf dist",
-    "test": "mocha -r ts-node/register test/**/*.ts"
+    "test": "mocha -r ts-node/register test/**/*.ts",
+    "apply-circle": "node dist/circleci/apply-circle-ci-env-variables-to-files src/static/build-properties.json"
   },
   "repository": {
     "type": "git",
