@@ -15,7 +15,7 @@
     "watch": "tsc -w .",
     "clean": "rm -Rf dist",
     "test": "mocha -r ts-node/register test/**/*.ts",
-    "apply-circle": "node dist/circleci/apply-circle-ci-env-variables-to-files src/static/build-properties.json"
+    "apply-circle": "node node_modules/@bitblit/ratchet/dist/circleci/apply-circle-ci-env-variables-to-files src/static/build-properties.json"
   },
   "repository": {
     "type": "git",
