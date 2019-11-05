@@ -96,7 +96,7 @@ export class SaltMineQueueUtil {
     }
 
 
-    public static async fetchCurrentQueueCount(cfg: SaltMineConfig): Promise<number> {
+    public static async fetchQueueApproximateNumberOfMessages(cfg: SaltMineConfig): Promise<number> {
         const all: GetQueueAttributesResult = await this.fetchCurrentQueueAttributes(cfg);
         const rval: number = NumberRatchet.safeNumber(all.Attributes['ApproximateNumberOfMessages']);
         return rval;
