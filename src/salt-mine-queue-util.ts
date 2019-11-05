@@ -3,6 +3,8 @@ import {Logger} from '@bitblit/ratchet/dist/common/logger';
 import {SaltMineEntry} from './salt-mine-entry';
 import {SaltMineConstants} from './salt-mine-constants';
 import {SaltMineConfig} from './salt-mine-config';
+import {GetQueueAttributesRequest, GetQueueAttributesResult} from 'aws-sdk/clients/sqs';
+import {NumberRatchet} from '@bitblit/ratchet/dist/common/number-ratchet';
 
 /**
  * This class just validates and puts items into the salt mine queue - it does not do
@@ -83,5 +85,21 @@ export class SaltMineQueueUtil {
         return result.MessageId;
     }
 
+    public static async fetchCurrentQueueAttributes(cfg: SaltMineConfig): Promise<GetQueueAttributesResult> {
+        const req: GetQueueAttributesRequest = {
+            AttributeNames: ['All'],
+            QueueUrl: cfg.queueUrl
+        };
+
+        const res: GetQueueAttributesResult = await cfg.sqs.getQueueAttributes(req).promise();
+        return res;
+    }
+
+
+    public static async fetchCurrentQueueCount(cfg: SaltMineConfig): Promise<number> {
+        const all: GetQueueAttributesResult = await this.fetchCurrentQueueAttributes(cfg);
+        const rval: number = NumberRatchet.safeNumber(all.Attributes['ApproximateNumberOfMessages']);
+        return rval;
+    }
 
 }
