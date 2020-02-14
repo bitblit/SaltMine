@@ -1,6 +1,6 @@
 {
   "name": "@bitblit/saltmine",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A system for automating processing of work on lambda using a combo of Lambda/SQS/SNS efficiently",
   "main": "./dist/index",
   "typings": "./dist/index",
@@ -52,14 +52,14 @@
     "@types/mocha": "7.0.1",
     "@types/node": "12.12.6",
     "aws-sdk": "2.618.0",
-    "husky": "3.0.5",
-    "prettier": "1.18.2",
-    "pretty-quick": "1.11.1",
     "chai": "4.2.0",
     "chai-http": "4.3.0",
-    "mocha": "7.0.1",
-    "ts-node": "8.6.2",
     "eslint": "6.8.0",
+    "husky": "3.0.5",
+    "mocha": "7.0.1",
+    "prettier": "1.18.2",
+    "pretty-quick": "1.11.1",
+    "ts-node": "8.6.2",
     "typescript": "3.7.5"
   }
 }
