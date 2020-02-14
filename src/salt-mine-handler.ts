@@ -40,12 +40,32 @@ export class SaltMineHandler {
     }
   }
 
+  public isSaltMineSNSEvent(event: any): boolean {
+    return this.isSaltMineStartSnsEvent(event) || this.isSaltMineImmediateFireEvent(event);
+  }
+
   public isSaltMineStartSnsEvent(event: any): boolean {
     let rval: boolean = false;
     if (event) {
       if (LambdaEventDetector.isSingleSnsEvent(event)) {
         const cast: SNSEvent = event as SNSEvent;
         rval = cast.Records[0].Sns.Message === SaltMineConstants.SALT_MINE_SNS_START_MARKER;
+      }
+    }
+    return rval;
+  }
+
+  public isSaltMineImmediateFireEvent(event: any): boolean {
+    let rval: boolean = false;
+
+    if (!!event) {
+      if (LambdaEventDetector.isSingleSnsEvent(event)) {
+        const cast: SNSEvent = event as SNSEvent;
+        const msg: string = cast.Records[0].Sns.Message;
+        if (!!StringRatchet.trimToNull(msg)) {
+          const parsed: any = JSON.parse(msg);
+          rval = !!parsed && parsed['type'] === SaltMineConstants.SALT_MINE_SNS_IMMEDIATE_RUN_FLAG;
+        }
       }
     }
     return rval;

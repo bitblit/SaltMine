@@ -74,12 +74,14 @@ export class SaltMineQueueUtil {
   public static async fireImmediateProcessRequest(cfg: SaltMineConfig, entry: SaltMineEntry): Promise<string> {
     let rval: string = null;
     if (!!entry) {
-      Logger.debug('Immediately enqueueing %j for processing', entry);
+      Logger.debug('Immediately processing %j', entry);
       const toWrite: any = {
         type: SaltMineConstants.SALT_MINE_SNS_IMMEDIATE_RUN_FLAG,
         saltMineEntry: entry
       };
-      rval = await this.writeMessageToSnsTopic(cfg, JSON.stringify(toWrite));
+      const msg: string = JSON.stringify(toWrite);
+      rval = await this.writeMessageToSnsTopic(cfg, msg);
+      Logger.debug('Wrote message : %s : %s', msg, rval);
     } else {
       Logger.warn('Cannot fire null value as immediate process request');
     }
