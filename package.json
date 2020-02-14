@@ -30,23 +30,36 @@
   },
   "homepage": "https://github.com/bitblit/SaltMine#readme",
   "engines": {
-    "node": ">=10.13"
+    "node": ">=12.8"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "prettier": {
+    "printWidth": 140,
+    "singleQuote": true,
+    "arrowParens": "always"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@bitblit/ratchet": "0.5.7"
+    "@bitblit/ratchet": "0.5.14"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.34",
-    "@types/chai": "4.2.4",
-    "@types/mocha": "5.2.7",
-    "@types/node": "8.9.4",
-    "aws-sdk": "2.552.0",
+    "@types/aws-lambda": "8.10.40",
+    "@types/chai": "4.2.9",
+    "@types/mocha": "7.0.1",
+    "@types/node": "12.12.6",
+    "aws-sdk": "2.618.0",
+    "husky": "3.0.5",
+    "prettier": "1.18.2",
+    "pretty-quick": "1.11.1",
     "chai": "4.2.0",
     "chai-http": "4.3.0",
-    "mocha": "6.2.2",
-    "ts-node": "8.3.0",
-    "tslint": "5.11.0",
-    "typescript": "3.5.3"
+    "mocha": "7.0.1",
+    "ts-node": "8.6.2",
+    "eslint": "6.8.0",
+    "typescript": "3.7.5"
   }
 }
