@@ -230,4 +230,10 @@ export class SaltMineHandler {
     }
     return rval;
   }
+
+  // Returns a copy so you cannot modify the internal one here
+  public getConfig(): SaltMineConfig {
+    const rval: SaltMineConfig = Object.assign({}, this.cfg);
+    return rval;
+  }
 }
