@@ -1,6 +1,6 @@
 {
   "name": "@bitblit/saltmine",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "A system for automating processing of work on lambda using a combo of Lambda/SQS/SNS efficiently",
   "main": "./dist/index",
   "typings": "./dist/index",
