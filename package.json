@@ -46,6 +46,11 @@
   "dependencies": {
     "@bitblit/ratchet": "0.8.8"
   },
+  "resolutions": {
+    "lodash": "4.17.19",
+    "minimist": "1.2.5",
+    "acorn": "7.4.0"
+  },
   "devDependencies": {
     "@types/aws-lambda": "8.10.60",
     "@types/chai": "4.2.12",
