@@ -44,22 +44,22 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@bitblit/ratchet": "0.5.14"
+    "@bitblit/ratchet": "0.8.8"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.40",
-    "@types/chai": "4.2.9",
-    "@types/mocha": "7.0.1",
+    "@types/aws-lambda": "8.10.60",
+    "@types/chai": "4.2.12",
+    "@types/mocha": "8.0.1",
     "@types/node": "12.12.6",
-    "aws-sdk": "2.618.0",
+    "aws-sdk": "2.730.0",
     "chai": "4.2.0",
     "chai-http": "4.3.0",
-    "eslint": "6.8.0",
-    "husky": "3.0.5",
-    "mocha": "7.0.1",
-    "prettier": "1.18.2",
-    "pretty-quick": "1.11.1",
-    "ts-node": "8.6.2",
-    "typescript": "3.7.5"
+    "eslint": "7.6.0",
+    "husky": "4.2.5",
+    "mocha": "8.1.1",
+    "prettier": "2.0.5",
+    "pretty-quick": "2.0.1",
+    "ts-node": "8.10.2",
+    "typescript": "3.9.7"
   }
 }

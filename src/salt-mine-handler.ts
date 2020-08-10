@@ -155,7 +155,7 @@ export class SaltMineHandler {
       MaxNumberOfMessages: 1,
       QueueUrl: this.cfg.queueUrl,
       VisibilityTimeout: 300,
-      WaitTimeSeconds: 0
+      WaitTimeSeconds: 0,
     };
 
     const message: AWS.SQS.ReceiveMessageResult = await this.cfg.sqs.receiveMessage(params).promise();
@@ -174,7 +174,7 @@ export class SaltMineHandler {
           Logger.debug('Removing message from queue');
           let delParams = {
             QueueUrl: this.cfg.queueUrl,
-            ReceiptHandle: m.ReceiptHandle
+            ReceiptHandle: m.ReceiptHandle,
           };
           const delResult: any = await this.cfg.sqs.deleteMessage(delParams).promise();
         } catch (err) {
@@ -208,7 +208,10 @@ export class SaltMineHandler {
     return rval;
   }
 
-  private async processSingleSaltMineEntry(e: SaltMineEntry): Promise<boolean> {
+  // CAW 2020-08-08 : I am making processSingle public because there are times (such as when
+  // using AWS batch) that you want to be able to run a salt mine command directly, eg, from
+  // the command line without needing an AWS-compliant event wrapping it. Thus, this.
+  public async processSingleSaltMineEntry(e: SaltMineEntry): Promise<boolean> {
     let rval: boolean = false;
     try {
       const processor: SaltMineProcessor = this.processors.get(e.type);
