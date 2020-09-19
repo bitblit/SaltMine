@@ -1,12 +1,11 @@
 import * as AWS from 'aws-sdk';
 
 export interface SaltMineConfig {
+  validTypes: string[];
 
-    validTypes: string[];
+  queueUrl: string;
+  notificationArn: string;
 
-    queueUrl: string;
-    notificationArn: string;
-
-    sqs: AWS.SQS;
-    sns: AWS.SNS;
+  sqs: AWS.SQS;
+  sns: AWS.SNS;
 }

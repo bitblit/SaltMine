@@ -14,6 +14,8 @@ import { NumberRatchet } from '@bitblit/ratchet/dist/common/number-ratchet';
  * adder or starter if necessary.
  */
 export class SaltMineQueueUtil {
+  // Prevent instantiation
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
   public static validType(cfg: SaltMineConfig, type: string): boolean {
@@ -22,7 +24,7 @@ export class SaltMineQueueUtil {
 
   public static createEntry(cfg: SaltMineConfig, type: string, data: any = {}, metadata: any = {}): SaltMineEntry {
     if (!SaltMineQueueUtil.validType(cfg, type)) {
-      Logger.warn('Tried to create invalid type : ' + type);
+      Logger.warn('Tried to create invalid type : %s (Valid are %j)', type, cfg.validTypes);
       return null;
     }
 
@@ -30,7 +32,7 @@ export class SaltMineQueueUtil {
       created: new Date().getTime(),
       type: type,
       data: data,
-      metadata: metadata
+      metadata: metadata,
     } as SaltMineEntry;
   }
 
@@ -40,11 +42,11 @@ export class SaltMineQueueUtil {
 
   public static async addEntryToQueue(cfg: SaltMineConfig, entry: SaltMineEntry, fireStartMessage: boolean = true): Promise<string> {
     if (SaltMineQueueUtil.validEntry(cfg, entry)) {
-      let params = {
+      const params = {
         DelaySeconds: 0,
         MessageBody: JSON.stringify(entry),
         MessageGroupId: entry.type,
-        QueueUrl: cfg.queueUrl
+        QueueUrl: cfg.queueUrl,
       };
 
       Logger.debug('Adding %j to queue', entry);
@@ -52,6 +54,7 @@ export class SaltMineQueueUtil {
 
       if (fireStartMessage) {
         const fireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(cfg);
+        Logger.silly('FireResult : %s', fireResult);
       }
 
       return result.MessageId;
@@ -67,6 +70,7 @@ export class SaltMineQueueUtil {
     const results: string[] = await Promise.all(promises);
     if (fireStartMessage) {
       const fireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(cfg);
+      Logger.silly('Fire Result : %s', fireResult);
     }
     return results;
   }
@@ -77,7 +81,7 @@ export class SaltMineQueueUtil {
       Logger.debug('Immediately processing %j', entry);
       const toWrite: any = {
         type: SaltMineConstants.SALT_MINE_SNS_IMMEDIATE_RUN_FLAG,
-        saltMineEntry: entry
+        saltMineEntry: entry,
       };
       const msg: string = JSON.stringify(toWrite);
       rval = await this.writeMessageToSnsTopic(cfg, msg);
@@ -93,9 +97,9 @@ export class SaltMineQueueUtil {
   }
 
   public static async writeMessageToSnsTopic(cfg: SaltMineConfig, message: string): Promise<string> {
-    let params = {
+    const params = {
       Message: message,
-      TopicArn: cfg.notificationArn
+      TopicArn: cfg.notificationArn,
     };
 
     const result: AWS.SNS.Types.PublishResponse = await cfg.sns.publish(params).promise();
@@ -105,7 +109,7 @@ export class SaltMineQueueUtil {
   public static async fetchCurrentQueueAttributes(cfg: SaltMineConfig): Promise<GetQueueAttributesResult> {
     const req: GetQueueAttributesRequest = {
       AttributeNames: ['All'],
-      QueueUrl: cfg.queueUrl
+      QueueUrl: cfg.queueUrl,
     };
 
     const res: GetQueueAttributesResult = await cfg.sqs.getQueueAttributes(req).promise();

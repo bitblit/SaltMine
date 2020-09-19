@@ -40,10 +40,12 @@ export class SaltMineHandler {
     }
   }
 
+  // eslint-disable-next-line  @typescript-eslint/explicit-module-boundary-types
   public isSaltMineSNSEvent(event: any): boolean {
     return this.isSaltMineStartSnsEvent(event) || this.isSaltMineImmediateFireEvent(event);
   }
 
+  // eslint-disable-next-line  @typescript-eslint/explicit-module-boundary-types
   public isSaltMineStartSnsEvent(event: any): boolean {
     let rval: boolean = false;
     if (event) {
@@ -55,6 +57,7 @@ export class SaltMineHandler {
     return rval;
   }
 
+  // eslint-disable-next-line  @typescript-eslint/explicit-module-boundary-types
   public isSaltMineImmediateFireEvent(event: any): boolean {
     let rval: boolean = false;
 
@@ -71,6 +74,7 @@ export class SaltMineHandler {
     return rval;
   }
 
+  // eslint-disable-next-line  @typescript-eslint/explicit-module-boundary-types
   public parseImmediateFireSaltMineEntry(event: any): SaltMineEntry {
     let rval: SaltMineEntry = null;
     try {
@@ -114,6 +118,7 @@ export class SaltMineHandler {
   }
 
   // Either trigger a pull of the SQS queue, or process immediately
+  // eslint-disable-next-line  @typescript-eslint/explicit-module-boundary-types
   public async processSaltMineSNSEvent(event: any, context: Context): Promise<boolean> {
     let rval: boolean = false;
     if (!this.isSaltMineStartSnsEvent(event)) {
@@ -143,7 +148,8 @@ export class SaltMineHandler {
           rval = rval && (await this.processSaltMineSNSEvent(event, context));
         } else {
           Logger.info('Less than 90 seconds remaining but still have work to do - refiring');
-          const refireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
+          const reFireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
+          Logger.silly('ReFire Result : %s', reFireResult);
         }
       }
     }
@@ -151,7 +157,7 @@ export class SaltMineHandler {
   }
 
   private async takeEntryFromSaltMineQueue(): Promise<SaltMineEntry[]> {
-    let params = {
+    const params = {
       MaxNumberOfMessages: 1,
       QueueUrl: this.cfg.queueUrl,
       VisibilityTimeout: 300,
@@ -172,11 +178,12 @@ export class SaltMineHandler {
           }
 
           Logger.debug('Removing message from queue');
-          let delParams = {
+          const delParams = {
             QueueUrl: this.cfg.queueUrl,
             ReceiptHandle: m.ReceiptHandle,
           };
           const delResult: any = await this.cfg.sqs.deleteMessage(delParams).promise();
+          Logger.silly('Delete result : %j', delResult);
         } catch (err) {
           Logger.warn('Error parsing message, dropping : %j', m);
         }
@@ -200,9 +207,10 @@ export class SaltMineHandler {
       rval.push(result);
     }
 
-    // If we processed, immediately refire
+    // If we processed, immediately reFire
     if (entries.length > 0) {
-      const refireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
+      const reFireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
+      Logger.silly('ReFire Result : %s', reFireResult);
     }
 
     return rval;

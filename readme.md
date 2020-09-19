@@ -113,6 +113,10 @@ release you must:
 
 ```
 
+# Release Notes
+
+- 0.5.x - Moved to ESLint, upgrade libraries, add some key logging
+
 # Contributing
 
 Pull requests are welcome, although I'm not sure why you'd be interested!
