@@ -16,10 +16,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@bitblit/ratchet@0.9.14":
-  version "0.9.14"
-  resolved "https://registry.yarnpkg.com/@bitblit/ratchet/-/ratchet-0.9.14.tgz#19ef97fe44136fda86efe72153aaf532843ee9dd"
-  integrity sha512-Ra9tmzReMYZAoNnuLIw9uVIWtI9WYTcoRKfWwbKKDly/OiCFSvjxXTlYEb1W5zh+2Qj9OJdmpe960Dsz3EyWkQ==
+"@bitblit/ratchet@0.9.15":
+  version "0.9.15"
+  resolved "https://registry.yarnpkg.com/@bitblit/ratchet/-/ratchet-0.9.15.tgz#334a893193ae7cafb36e7ad8552241bbdf36f38d"
+  integrity sha512-zOQruNqfU+KU0Vkjk0CDzc4RPTO+hWyFK/a0Cf87kv/HofVVhwpkrWP2d4IgMDWEC5Lt6/5rQUq0jP4p5GpIQw==
   dependencies:
     moment "2.29.1"
     moment-timezone "0.5.31"
