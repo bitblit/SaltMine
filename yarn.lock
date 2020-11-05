@@ -16,12 +16,12 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@bitblit/ratchet@0.9.2":
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/@bitblit/ratchet/-/ratchet-0.9.2.tgz#e9ee6b3e3d990db917059e9d8808121db6ab81c8"
-  integrity sha512-3Dq11caWL0xpWoP4anCr8TGbhkeyzz/gKmghVRtRXZZL3dM8p2iQIqjeKNbItjbIE7Gv74HOOK5RfVIDGn/SZA==
+"@bitblit/ratchet@0.9.14":
+  version "0.9.14"
+  resolved "https://registry.yarnpkg.com/@bitblit/ratchet/-/ratchet-0.9.14.tgz#19ef97fe44136fda86efe72153aaf532843ee9dd"
+  integrity sha512-Ra9tmzReMYZAoNnuLIw9uVIWtI9WYTcoRKfWwbKKDly/OiCFSvjxXTlYEb1W5zh+2Qj9OJdmpe960Dsz3EyWkQ==
   dependencies:
-    moment "2.27.0"
+    moment "2.29.1"
     moment-timezone "0.5.31"
     ts-enum-util "4.0.2"
     yargs "15.4.1"
@@ -63,10 +63,10 @@
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
 
-"@types/aws-lambda@8.10.62":
-  version "8.10.62"
-  resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.62.tgz#857de3f73ab503136f2eefe965b1b67e5f397b62"
-  integrity sha512-43XhJY5jvyH03U0cRsSqeHWhvmGZNoLzTPSAZ3JAqgG9p20uw+Sx9Auk5OAefJajd9ZcfjDJ/9lJ2BiBxfKJRw==
+"@types/aws-lambda@8.10.64":
+  version "8.10.64"
+  resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.64.tgz#4bdcb725aef96bef0cb1decf19c7efff1df22fe7"
+  integrity sha512-LRKk2UQCSi7BsO5TlfSI8cTNpOGz+MH6+RXEWtuZmxJficQgxwEYJDiKVirzgyiHce0L0F4CqCVvKTwblAeOUw==
 
 "@types/chai@4":
   version "4.1.7"
@@ -327,10 +327,10 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-aws-sdk@2.751.0:
-  version "2.751.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.751.0.tgz#aeab21a5fc1b1f843180a988ff0fb650119dc6ff"
-  integrity sha512-0lo7YKTfjEwoP+2vK7F7WGNigvwFxqiM96PzBaseOpOelfhFHPKEJpk2Poa12JI89c8dGoc1PhTQ1TSTJK3ZqQ==
+aws-sdk@2.785.0:
+  version "2.785.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.785.0.tgz#e403dc92c87c00c9eda86b4214870d874ea69251"
+  integrity sha512-B8KOd9pg+ofT++O0D8rfm30VDdCzBWCFl43rvXBEWbH6lq/fQcLYLTbhKEufqjqnpwzT+prlpNszdNqKYME34g==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -1541,10 +1541,10 @@ moment-timezone@0.5.31:
   dependencies:
     moment ">= 2.9.0"
 
-moment@2.27.0:
-  version "2.27.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.27.0.tgz#8bff4e3e26a236220dfe3e36de756b6ebaa0105d"
-  integrity sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ==
+moment@2.29.1:
+  version "2.29.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
+  integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
 
 "moment@>= 2.9.0":
   version "2.22.2"
