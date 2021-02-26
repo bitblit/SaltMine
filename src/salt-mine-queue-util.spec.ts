@@ -18,17 +18,20 @@ describe('#createEntry', function () {
     mockSns = Substitute.for<AWS.SNS>();
 
     saltMineConfig = {
-      sqs: mockSqs,
-      sns: mockSns,
-      queueUrl: 'https://fake-sqs.fake-availability-zone.test.com/' + fakeAccountNumber + '/fakeQueue.fifo',
-      notificationArn: 'arn:aws:sns:fake-availability-zone:' + fakeAccountNumber + ':fakeSnsTopicName',
       validTypes: ['a', 'b'],
-    } as SaltMineConfig;
+      aws: {
+        sqs: mockSqs,
+        sns: mockSns,
+        queueUrl: 'https://fake-sqs.fake-availability-zone.test.com/' + fakeAccountNumber + '/fakeQueue.fifo',
+        notificationArn: 'arn:aws:sns:fake-availability-zone:' + fakeAccountNumber + ':fakeSnsTopicName',
+      },
+      development: null,
+    };
   });
 
   it('Should return queue attributes', async () => {
     mockSqs
-      .getQueueAttributes({ AttributeNames: ['All'], QueueUrl: saltMineConfig.queueUrl })
+      .getQueueAttributes({ AttributeNames: ['All'], QueueUrl: saltMineConfig.aws.queueUrl })
       .promise()
       .resolves({ Attributes: { ApproximateNumberOfMessages: 1 } });
 
@@ -55,16 +58,10 @@ describe('#createEntry', function () {
       }
     );
 
-    const cfg: SaltMineConfig = {
-      queueUrl: 'q',
-      notificationArn: 'n',
-      validTypes: ['a', 'b'],
-    } as SaltMineConfig;
-
     //const mine: SaltMineHandler = new SaltMineHandler(cfg, processors);
 
-    const resultA = SaltMineQueueUtil.createEntry(cfg, 'a', {}, {});
-    const resultC = SaltMineQueueUtil.createEntry(cfg, 'c', {}, {});
+    const resultA = SaltMineQueueUtil.createEntry(saltMineConfig, 'a', {}, {});
+    const resultC = SaltMineQueueUtil.createEntry(saltMineConfig, 'c', {}, {});
     expect(resultA.type).toEqual('a');
     expect(resultC).toBeNull();
   });

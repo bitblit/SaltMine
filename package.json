@@ -48,7 +48,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@bitblit/ratchet": "0.10.2"
+    "@bitblit/ratchet": "0.10.2",
+    "portable-fetch": "3.0.0"
   },
   "resolutions": {
     "lodash": "^4.17.20",

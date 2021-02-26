@@ -23,9 +23,9 @@ export class SaltMineHandler {
     private chainRunMinRemainTimeInSeconds: number = 90
   ) {
     Logger.silly('Starting Salt Mine processor');
-
-    if (!cfg || !cfg.sqs || !cfg.sns || !cfg.queueUrl || !cfg.notificationArn || !cfg.validTypes) {
-      ErrorRatchet.throwFormattedErr('Invalid salt mine config : %j', cfg);
+    const cfgErrors: string[] = SaltMineQueueUtil.validateConfig(cfg);
+    if (cfgErrors.length > 0) {
+      ErrorRatchet.throwFormattedErr('Invalid salt mine config : %j : %j', cfgErrors, cfg);
     }
 
     if (!processors) {
@@ -157,39 +157,45 @@ export class SaltMineHandler {
   }
 
   private async takeEntryFromSaltMineQueue(): Promise<SaltMineEntry[]> {
-    const params = {
-      MaxNumberOfMessages: 1,
-      QueueUrl: this.cfg.queueUrl,
-      VisibilityTimeout: 300,
-      WaitTimeSeconds: 0,
-    };
+    let rval: SaltMineEntry[] = [];
 
-    const message: AWS.SQS.ReceiveMessageResult = await this.cfg.sqs.receiveMessage(params).promise();
-    const rval: SaltMineEntry[] = [];
-    if (message && message.Messages && message.Messages.length > 0) {
-      for (let i = 0; i < message.Messages.length; i++) {
-        const m: AWS.SQS.Message = message.Messages[i];
-        try {
-          const parsedBody: SaltMineEntry = JSON.parse(m.Body) as SaltMineEntry;
-          if (!parsedBody.type) {
-            Logger.warn('Dropping invalid salt mine entry : %j', parsedBody);
-          } else {
-            rval.push(parsedBody);
+    if (SaltMineQueueUtil.awsConfig(this.cfg)) {
+      const params = {
+        MaxNumberOfMessages: 1,
+        QueueUrl: this.cfg.aws.queueUrl,
+        VisibilityTimeout: 300,
+        WaitTimeSeconds: 0,
+      };
+
+      const message: AWS.SQS.ReceiveMessageResult = await this.cfg.aws.sqs.receiveMessage(params).promise();
+      if (message && message.Messages && message.Messages.length > 0) {
+        for (let i = 0; i < message.Messages.length; i++) {
+          const m: AWS.SQS.Message = message.Messages[i];
+          try {
+            const parsedBody: SaltMineEntry = JSON.parse(m.Body);
+            if (!parsedBody.type) {
+              Logger.warn('Dropping invalid salt mine entry : %j', parsedBody);
+            } else {
+              rval.push(parsedBody);
+            }
+
+            Logger.debug('Removing message from queue');
+            const delParams = {
+              QueueUrl: this.cfg.aws.queueUrl,
+              ReceiptHandle: m.ReceiptHandle,
+            };
+            const delResult: any = await this.cfg.aws.sqs.deleteMessage(delParams).promise();
+            Logger.silly('Delete result : %j', delResult);
+          } catch (err) {
+            Logger.warn('Error parsing message, dropping : %j', m);
           }
-
-          Logger.debug('Removing message from queue');
-          const delParams = {
-            QueueUrl: this.cfg.queueUrl,
-            ReceiptHandle: m.ReceiptHandle,
-          };
-          const delResult: any = await this.cfg.sqs.deleteMessage(delParams).promise();
-          Logger.silly('Delete result : %j', delResult);
-        } catch (err) {
-          Logger.warn('Error parsing message, dropping : %j', m);
         }
+      } else {
+        Logger.debug('No messages found (likely end of recursion)');
       }
     } else {
-      Logger.debug('No messages found (likely end of recursion)');
+      Logger.debug('Running local - no queue');
+      rval = [];
     }
 
     return rval;

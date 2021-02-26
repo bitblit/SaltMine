@@ -15,13 +15,14 @@ export class SaltMineDevelopmentServer {
   private aborted: boolean = false;
   private saltMineHandler: SaltMineHandler;
 
-  constructor(private processors: Map<string, SaltMineProcessor>, private port: number = 8124) {
+  constructor(private processors: Map<string, SaltMineProcessor>, private port: number = 8124, private queueDelay: number = 500) {
     const cfg: SaltMineConfig = {
       validTypes: Array.from(processors.keys()),
-      queueUrl: 'N/A',
-      notificationArn: 'N/A',
-      sqs: {} as AWS.SQS,
-      sns: {} as AWS.SNS,
+      development: {
+        url: 'http://localhost:' + port,
+        queueDelayMS: queueDelay,
+      },
+      aws: null,
     };
 
     this.saltMineHandler = new SaltMineHandler(cfg, processors);
