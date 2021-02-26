@@ -10,6 +10,7 @@ import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineQueueUtil } from './salt-mine-queue-util';
 import { ErrorRatchet } from '@bitblit/ratchet/dist/common/error-ratchet';
 import { StringRatchet } from '@bitblit/ratchet/dist/common/string-ratchet';
+import { StopWatch } from '@bitblit/ratchet/dist/common/stop-watch';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -232,15 +233,15 @@ export class SaltMineHandler {
       if (!processor) {
         Logger.warn('Found no processor for salt mine entry : %j (returning false)', e);
       } else {
-        const start: number = new Date().getTime();
+        const sw: StopWatch = new StopWatch(true);
         try {
           await processor(e, this.cfg);
           rval = true;
         } catch (err) {
           Logger.warn('Error processing: %s', err, err);
         }
-        const end: number = new Date().getTime();
-        Logger.info('Processed %j in %s', e, DurationRatchet.formatMsDuration(end - start, true));
+        sw.stop();
+        Logger.info('Processed %j : %s', e, sw.dump());
       }
     } catch (err) {
       Logger.error('Failed while processing salt mine entry (returning false): %j : %s', e, err, err);
