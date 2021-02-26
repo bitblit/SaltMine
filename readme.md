@@ -59,6 +59,10 @@ processed by the same processors that would have processed it deferred). With th
   you want that
 - Unbounded concurrent lambda when you want that
 
+As of Version 0.6.x, SaltMine offers a local development server to bypass SQS and SNS. If you provide a development
+config inside your SaltMineConfig instead of a AWS one, all traffic will be routed to a local server,
+assumed to be running the salt-mine-development-server class.
+
 ## AWS Resource Creation
 
 ### SNS Topic
