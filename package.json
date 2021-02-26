@@ -11,13 +11,15 @@
   "config": {},
   "scripts": {
     "prepublishOnly": "yarn run compile",
-    "compile": "yarn run clean && tsc",
+    "compile": "tsc",
+    "clean-compile": "yarn run clean && yarn run compile",
     "watch": "tsc -w .",
     "clean": "rm -Rf dist",
-    "test": "mocha -r ts-node/register test/**/*.ts",
+    "test": "jest",
     "apply-circle": "node node_modules/@bitblit/ratchet/dist/circleci/apply-circle-ci-env-variables-to-files src/static/build-properties.json",
     "lint": "eslint src/**/*.ts",
-    "lint-fix": "eslint --fix src/**/*.ts"
+    "lint-fix": "eslint --fix src/**/*.ts",
+    "run-sample-dev-server": "yarn compile && node dist/sample-salt-mine-development-server.js"
   },
   "repository": {
     "type": "git",
@@ -32,7 +34,7 @@
   },
   "homepage": "https://github.com/bitblit/SaltMine#readme",
   "engines": {
-    "node": ">=12.8"
+    "node": ">=14.15"
   },
   "husky": {
     "hooks": {
@@ -56,20 +58,18 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.70",
-    "@types/chai": "4.2.14",
-    "@types/mocha": "8.2.0",
-    "@types/node": "12.12.6",
+    "@types/node": "14.14.31",
     "@typescript-eslint/eslint-plugin": "4.12.0",
     "@typescript-eslint/parser": "4.12.0",
+    "@fluffy-spoon/substitute": "1.190.0",
     "aws-sdk": "2.824.0",
-    "chai": "4.2.0",
-    "chai-http": "4.3.0",
     "eslint": "7.17.0",
     "eslint-config-prettier": "7.1.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-prettier": "3.3.1",
     "husky": "4.3.7",
-    "mocha": "8.2.1",
+    "jest": "26.6.3",
+    "ts-jest": "26.5.2",
     "prettier": "2.2.1",
     "pretty-quick": "3.1.0",
     "ts-node": "9.1.1",
