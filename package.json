@@ -53,7 +53,7 @@
   },
   "resolutions": {
     "lodash": "^4.17.20",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "2.6.1",
     "minimist": "1.2.5",
     "acorn": "7.4.0",
     "debug": "4.3.1"
