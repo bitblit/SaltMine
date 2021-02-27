@@ -3,7 +3,6 @@ import { Logger } from '@bitblit/ratchet/dist/common/logger';
 import { SaltMineEntry } from './salt-mine-entry';
 import { Context, SNSEvent } from 'aws-lambda';
 import { LambdaEventDetector } from '@bitblit/ratchet/dist/aws/lambda-event-detector';
-import { DurationRatchet } from '@bitblit/ratchet/dist/common/duration-ratchet';
 import { SaltMineConstants } from './salt-mine-constants';
 import { SaltMineProcessor } from './salt-mine-processor';
 import { SaltMineConfig } from './salt-mine-config';
@@ -17,12 +16,7 @@ import { StopWatch } from '@bitblit/ratchet/dist/common/stop-watch';
  * thing at the same time.
  */
 export class SaltMineHandler {
-  constructor(
-    private cfg: SaltMineConfig,
-    private processors: Map<string, SaltMineProcessor>,
-    private chainRun: boolean = true,
-    private chainRunMinRemainTimeInSeconds: number = 90
-  ) {
+  constructor(private cfg: SaltMineConfig, private processors: Map<string, SaltMineProcessor | SaltMineProcessor[]>) {
     Logger.silly('Starting Salt Mine processor');
     const cfgErrors: string[] = SaltMineQueueUtil.validateConfig(cfg);
     if (cfgErrors.length > 0) {
@@ -137,21 +131,12 @@ export class SaltMineHandler {
       rval = true;
       results.forEach((b) => (rval = rval && b)); // True if all succeed or empty
 
-      if (this.chainRun && this.chainRunMinRemainTimeInSeconds > 0) {
-        if (results.length == 0) {
-          Logger.info('Salt mine queue now empty - stopping');
-        } else if (context.getRemainingTimeInMillis() > this.chainRunMinRemainTimeInSeconds * 1000) {
-          Logger.info(
-            'Still have more than %d seconds remaining (%d ms) - running again',
-            this.chainRunMinRemainTimeInSeconds,
-            context.getRemainingTimeInMillis()
-          );
-          rval = rval && (await this.processSaltMineSNSEvent(event, context));
-        } else {
-          Logger.info('Less than 90 seconds remaining but still have work to do - refiring');
-          const reFireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
-          Logger.silly('ReFire Result : %s', reFireResult);
-        }
+      if (results.length === 0) {
+        Logger.info('Salt mine queue now empty - stopping');
+      } else {
+        Logger.info('Still have work to do - re-firing');
+        const reFireResult: string = await SaltMineQueueUtil.fireStartProcessingRequest(this.cfg);
+        Logger.silly('ReFire Result : %s', reFireResult);
       }
     }
     return rval;
@@ -229,13 +214,17 @@ export class SaltMineHandler {
   public async processSingleSaltMineEntry(e: SaltMineEntry): Promise<boolean> {
     let rval: boolean = false;
     try {
-      const processor: SaltMineProcessor = this.processors.get(e.type);
-      if (!processor) {
+      const processorInput: SaltMineProcessor | SaltMineProcessor[] = this.processors.get(e.type);
+      if (!processorInput) {
         Logger.warn('Found no processor for salt mine entry : %j (returning false)', e);
       } else {
         const sw: StopWatch = new StopWatch(true);
         try {
-          await processor(e, this.cfg);
+          const procArr: SaltMineProcessor[] = Array.isArray(processorInput) ? processorInput : [processorInput];
+          for (let i = 0; i < procArr.length; i++) {
+            Logger.info('%s : Step %d of %d', e.type, i + 1, procArr.length);
+            await procArr[i](e, this.cfg);
+          }
           rval = true;
         } catch (err) {
           Logger.warn('Error processing: %s', err, err);

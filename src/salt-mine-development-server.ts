@@ -15,7 +15,11 @@ export class SaltMineDevelopmentServer {
   private aborted: boolean = false;
   private saltMineHandler: SaltMineHandler;
 
-  constructor(private processors: Map<string, SaltMineProcessor>, private port: number = 8124, private queueDelay: number = 500) {
+  constructor(
+    private processors: Map<string, SaltMineProcessor | SaltMineProcessor[]>,
+    private port: number = 8124,
+    private queueDelay: number = 500
+  ) {
     const cfg: SaltMineConfig = {
       validTypes: Array.from(processors.keys()),
       development: {

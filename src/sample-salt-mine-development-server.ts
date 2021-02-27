@@ -18,8 +18,14 @@ const sampleProcessor: SaltMineProcessor = async (event: SaltMineEntry, cfg: Sal
   Logger.info('Sample processor complete');
 };
 
-const processorMap: Map<string, SaltMineProcessor> = new Map<string, SaltMineProcessor>();
+const justLogProcessor: SaltMineProcessor = async (event: SaltMineEntry, cfg: SaltMineConfig) => {
+  Logger.info('Ran just log processor');
+};
+
+const processorMap: Map<string, SaltMineProcessor | SaltMineProcessor[]> = new Map<string, SaltMineProcessor | SaltMineProcessor[]>();
 processorMap.set('SAMPLE', (evt, cfg) => sampleProcessor(evt, cfg));
+processorMap.set('JUST-LOG', (evt, cfg) => justLogProcessor(evt, cfg));
+processorMap.set('COMBO', [sampleProcessor, justLogProcessor]);
 
 const testServer: SaltMineDevelopmentServer = new SaltMineDevelopmentServer(processorMap);
 
