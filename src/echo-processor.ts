@@ -1,5 +1,5 @@
 import { SaltMineEntry } from './salt-mine-entry';
-import { Logger } from '@bitblit/ratchet/dist/common/logger';
+import { Logger } from '@bitblit/ratchet/dist/common';
 
 export class EchoProcessor {
   public async handler(entry: SaltMineEntry): Promise<boolean> {

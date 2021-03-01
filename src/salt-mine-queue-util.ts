@@ -1,13 +1,11 @@
-import * as AWS from 'aws-sdk';
-import { Logger } from '@bitblit/ratchet/dist/common/logger';
+import AWS from 'aws-sdk';
 import { SaltMineEntry } from './salt-mine-entry';
 import { SaltMineConstants } from './salt-mine-constants';
 import { SaltMineConfig } from './salt-mine-config';
 import { GetQueueAttributesRequest, GetQueueAttributesResult } from 'aws-sdk/clients/sqs';
-import { NumberRatchet } from '@bitblit/ratchet/dist/common/number-ratchet';
 import { SaltMineLocalSimulationEntry } from './salt-mine-local-simulation-entry';
 import fetch from 'portable-fetch';
-import { ErrorRatchet } from '@bitblit/ratchet/dist/common/error-ratchet';
+import { ErrorRatchet, NumberRatchet, Logger } from '@bitblit/ratchet/dist/common';
 
 /**
  * This class just validates and puts items into the salt mine queue - it does not do

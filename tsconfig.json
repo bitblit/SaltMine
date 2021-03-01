@@ -6,6 +6,8 @@
     "outDir": "./dist",
     "strict": true,
 
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "sourceMap": true,
     "noImplicitAny": false,
@@ -19,7 +21,7 @@
     "lib": ["es2015", "dom"]
   },
   "include": ["src/**/*.ts"],
-  "exclude": [ "node_modules", "build", "webpack" ],
-  "types": [ "typePatches" ],
-  "CAW_NOTES" : "Set noImplicitAny, noImplicitThis and noUnusedLocals back to true at some point"
+  "exclude": ["node_modules", "build", "webpack"],
+  "types": ["typePatches"],
+  "CAW_NOTES": "Set noImplicitAny, noImplicitThis and noUnusedLocals back to true at some point"
 }

@@ -2,11 +2,10 @@
  * This is an example of how to setup a local server for testing.  Replace the createRouterConfig function
  * with your own.
  */
-import { Logger } from '@bitblit/ratchet/dist/common/logger';
 import { SaltMineProcessor } from './salt-mine-processor';
 import { SaltMineEntry } from './salt-mine-entry';
 import { SaltMineConfig } from './salt-mine-config';
-import { PromiseRatchet } from '@bitblit/ratchet/dist/common/promise-ratchet';
+import { PromiseRatchet, Logger } from '@bitblit/ratchet/dist/common';
 import { SaltMineDevelopmentServer } from './salt-mine-development-server';
 
 Logger.setLevelByName('debug');

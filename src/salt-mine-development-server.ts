@@ -1,7 +1,6 @@
-import { Logger } from '@bitblit/ratchet/dist/common/logger';
-import * as http from 'http';
+import { Logger, PromiseRatchet } from '@bitblit/ratchet/dist/common';
+import http from 'http';
 import { IncomingMessage, Server, ServerResponse } from 'http';
-import { PromiseRatchet } from '@bitblit/ratchet/dist/common/promise-ratchet';
 import { SaltMineLocalSimulationEntry } from './salt-mine-local-simulation-entry';
 import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineProcessor } from './salt-mine-processor';

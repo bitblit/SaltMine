@@ -1,15 +1,12 @@
-import * as AWS from 'aws-sdk';
-import { Logger } from '@bitblit/ratchet/dist/common/logger';
+import AWS from 'aws-sdk';
+import { Logger, ErrorRatchet, StringRatchet, StopWatch } from '@bitblit/ratchet/dist/common';
 import { SaltMineEntry } from './salt-mine-entry';
 import { Context, SNSEvent } from 'aws-lambda';
-import { LambdaEventDetector } from '@bitblit/ratchet/dist/aws/lambda-event-detector';
 import { SaltMineConstants } from './salt-mine-constants';
 import { SaltMineProcessor } from './salt-mine-processor';
 import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineQueueUtil } from './salt-mine-queue-util';
-import { ErrorRatchet } from '@bitblit/ratchet/dist/common/error-ratchet';
-import { StringRatchet } from '@bitblit/ratchet/dist/common/string-ratchet';
-import { StopWatch } from '@bitblit/ratchet/dist/common/stop-watch';
+import { LambdaEventDetector } from '@bitblit/ratchet/dist/aws';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same

@@ -1,9 +1,9 @@
 import { SaltMineEntry } from './salt-mine-entry';
-import { Logger } from '@bitblit/ratchet/dist/common/logger';
+import { Logger } from '@bitblit/ratchet/dist/common';
 import { SaltMineProcessor } from './salt-mine-processor';
 import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineQueueUtil } from './salt-mine-queue-util';
-import * as AWS from 'aws-sdk';
+import AWS from 'aws-sdk';
 import { GetQueueAttributesResult } from 'aws-sdk/clients/sqs';
 import { Substitute } from '@fluffy-spoon/substitute';
 
