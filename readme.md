@@ -120,6 +120,7 @@ release you must:
 # Release Notes
 
 - 0.5.x - Moved to ESLint, upgrade libraries, add some key logging
+- 0.14.x - Moved to ES6 since Lambda supports node 14; added barrel files
 
 # Contributing
 
