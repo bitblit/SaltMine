@@ -5,14 +5,14 @@ A utility for running a batch work queue on top of Lambda/SQS/SNS
 ## Introduction
 
 A pretty common problem I have when I do serverless development is that I have some tasks that really
-should be run asynchronously, so they belong in a queue system. But there aren't that many of them, and
+should be run asynchronously, so they belong in a queue system. However, there aren't that many of them, and
 I don't really want to use the complementary resources (like DynamoDB) that would be needed to run
 1000 of them simultaneously. I may need to queue up about 400-500 of them, and then let that bleed
 out over a couple minutes. Also, some of them may need a fair amount of time (over a minute) but others
-only need a few seconds so if I set the Lambda to have a 5 minute timeout I'd like to process more
+only need a few seconds so if I set the Lambda to have a 5-minute timeout I'd like to process more
 than one in a call if I can get away with it.
 
-Enter SaltMine. It is a class that allows you to:
+Enter SaltMine. It is a class which allows you to:
 
 - Define a set of processors that can handle these tasks. They'll get handed an object with arbitrary
   data and metadata, and must return a Promise<boolean>. There is no point in returning anything more
@@ -102,7 +102,7 @@ utilities.
 
 To run the tests,
 
-`npm test`
+`yarn test`
 
 # Deployment
 

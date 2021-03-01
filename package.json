@@ -22,7 +22,7 @@
     "apply-circle": "node node_modules/@bitblit/ratchet/dist/node-only/circleci/apply-circle-ci-env-variables-to-files dist/static/build-properties.json",
     "lint": "eslint src/**/*.ts",
     "lint-fix": "eslint --fix src/**/*.ts",
-    "generate-barrels": "barrelsby --delete -d src -e .*\\.spec\\.ts",
+    "generate-barrels": "barrelsby --delete -d src -e .*\\.spec\\.ts -e .*sample-salt-mine-development-server.*",
     "run-sample-dev-server": "yarn compile && node dist/sample-salt-mine-development-server.js"
   },
   "repository": {

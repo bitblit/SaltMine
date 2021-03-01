@@ -13,4 +13,3 @@ export * from './salt-mine-handler';
 export * from './salt-mine-local-simulation-entry';
 export * from './salt-mine-processor';
 export * from './salt-mine-queue-util';
-export * from './sample-salt-mine-development-server';
