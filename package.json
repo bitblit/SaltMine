@@ -60,7 +60,9 @@
     "node-fetch": "^2.6.1",
     "minimist": "^1.2.5",
     "acorn": "^7.4.0",
-    "debug": "^4.3.1"
+    "debug": "^4.3.1",
+    "y18n": "^4.0.1",
+    "hosted-git-info": "^2.8.9"
   },
   "devDependencies": {
     "@fluffy-spoon/substitute": "1.208.0",
