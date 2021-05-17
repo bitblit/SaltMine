@@ -1,6 +1,6 @@
-export interface SaltMineEntry {
+export interface SaltMineEntry<D = any, MD = any> {
   created: number;
   type: string;
-  data: any;
-  metadata: any;
+  data: D;
+  metadata: MD;
 }
