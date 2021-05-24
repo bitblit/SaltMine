@@ -1,0 +1,31 @@
+saltMine:
+  aws:
+    queueUrl: xxx
+    notificationArn: yyy
+
+  developmentServer:
+    url: zzz
+    queueDelayMS: 5000
+
+  processes:
+    Sample:
+      description: This is a sample process
+      schema:
+        type: object
+        properties:
+          numberField:
+            type: number
+            maximum: 25
+          stringField:
+            type: string
+
+    Echo:
+      description: This just echos it's message to the logger
+      schema:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+

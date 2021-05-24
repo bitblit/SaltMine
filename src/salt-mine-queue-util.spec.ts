@@ -18,7 +18,10 @@ describe('#createEntry', function () {
     mockSns = Substitute.for<AWS.SNS>();
 
     saltMineConfig = {
-      validTypes: ['a', 'b'],
+      processes: {
+        a: {},
+        b: {},
+      },
       aws: {
         sqs: mockSqs,
         sns: mockSns,
@@ -45,18 +48,12 @@ describe('#createEntry', function () {
 
   it('should make sure a processor exists', async () => {
     const processors: Map<string, SaltMineProcessor> = new Map<string, SaltMineProcessor>();
-    processors.set(
-      'a',
-      async (entry: SaltMineEntry): Promise<void> => {
-        Logger.info('Called a');
-      }
-    );
-    processors.set(
-      'b',
-      async (entry: SaltMineEntry): Promise<void> => {
-        Logger.info('Called b');
-      }
-    );
+    processors.set('a', async (entry: SaltMineEntry): Promise<void> => {
+      Logger.info('Called a');
+    });
+    processors.set('b', async (entry: SaltMineEntry): Promise<void> => {
+      Logger.info('Called b');
+    });
 
     //const mine: SaltMineHandler = new SaltMineHandler(cfg, processors);
 

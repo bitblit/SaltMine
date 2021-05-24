@@ -52,8 +52,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@bitblit/ratchet": "0.13.1000",
-    "portable-fetch": "3.0.0"
+    "@bitblit/ratchet": "0.13.1003",
+    "portable-fetch": "3.0.0",
+    "js-yaml": "4.0.0",
+    "swagger-model-validator": "3.0.20"
   },
   "resolutions": {
     "lodash": "^4.17.21",

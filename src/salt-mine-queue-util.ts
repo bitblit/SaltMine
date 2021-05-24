@@ -20,12 +20,12 @@ export class SaltMineQueueUtil {
   private constructor() {}
 
   public static validType(cfg: SaltMineConfig, type: string): boolean {
-    return cfg.validTypes.indexOf(type) > -1;
+    return !!cfg.processes[type];
   }
 
   public static createEntry(cfg: SaltMineConfig, type: string, data: any = {}, metadata: any = {}): SaltMineEntry {
     if (!SaltMineQueueUtil.validType(cfg, type)) {
-      Logger.warn('Tried to create invalid type : %s (Valid are %j)', type, cfg.validTypes);
+      Logger.warn('Tried to create invalid type : %s (Valid are %j)', type, cfg.processes);
       return null;
     }
 
@@ -183,8 +183,8 @@ export class SaltMineQueueUtil {
     if (!cfg) {
       rval.push('Null config');
     } else {
-      if (!cfg.validTypes || cfg.validTypes.length === 0) {
-        rval.push('No valid types specified');
+      if (!cfg.processes || cfg.processes.size === 0) {
+        rval.push('No processes specified');
       }
       if (!cfg.development && !cfg.aws) {
         rval.push('Neither AWS nor development server configured');

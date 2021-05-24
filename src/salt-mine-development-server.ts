@@ -5,6 +5,7 @@ import { SaltMineLocalSimulationEntry } from './salt-mine-local-simulation-entry
 import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineProcessor } from './salt-mine-processor';
 import { SaltMineHandler } from './salt-mine-handler';
+import { SaltMineProcessConfig } from './salt-mine-process-config';
 
 /**
  * A simplistic server for testing your lambdas locally
@@ -19,8 +20,18 @@ export class SaltMineDevelopmentServer {
     private port: number = 8124,
     private queueDelay: number = 500
   ) {
+    // Create a default non-validated form here
+    const procDef: Record<string, SaltMineProcessConfig> = {};
+    Array.from(processors.keys()).forEach((key) => {
+      const next: SaltMineProcessConfig = {
+        description: 'Default config for ' + key,
+        schema: null,
+      };
+      procDef[key] = next;
+    });
+
     const cfg: SaltMineConfig = {
-      validTypes: Array.from(processors.keys()),
+      processes: procDef,
       development: {
         url: 'http://localhost:' + port,
         queueDelayMS: queueDelay,

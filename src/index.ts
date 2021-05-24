@@ -7,6 +7,7 @@ export * from './salt-mine-aws-config';
 export * from './salt-mine-config';
 export * from './salt-mine-constants';
 export * from './salt-mine-development-server-config';
+export * from './salt-mine-process-config';
 export * from './salt-mine-development-server';
 export * from './salt-mine-entry';
 export * from './salt-mine-handler';

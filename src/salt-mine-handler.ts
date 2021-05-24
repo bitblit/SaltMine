@@ -7,6 +7,9 @@ import { SaltMineProcessor } from './salt-mine-processor';
 import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineQueueUtil } from './salt-mine-queue-util';
 import { LambdaEventDetector } from '@bitblit/ratchet/dist/aws';
+import { Arg } from '@fluffy-spoon/substitute';
+import all = Arg.all;
+import * as util from 'util';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -20,15 +23,25 @@ export class SaltMineHandler {
       ErrorRatchet.throwFormattedErr('Invalid salt mine config : %j : %j', cfgErrors, cfg);
     }
 
-    if (!processors) {
+    if (!processors || processors.size === 0) {
       throw new Error('You must supply processors');
     }
 
-    let allMatch: boolean = true;
-    cfg.validTypes.forEach((s) => (allMatch = allMatch && !!processors.get(s)));
+    const mismatch: string[] = [];
+    Object.keys(cfg.processes).forEach((key) => {
+      if (!processors.has(key)) {
+        mismatch.push(util.format('Config defines process %s but no matching processor found', key));
+      }
+    });
 
-    if (!allMatch || processors.size !== cfg.validTypes.length) {
-      throw new Error('Mismatch between processors and config valid types');
+    Array.from(processors.keys()).forEach((key) => {
+      if (!cfg.processes[key]) {
+        mismatch.push(util.format('Processors defines %s but it is not present in the config process list', key));
+      }
+    });
+
+    if (mismatch.length > 0) {
+      ErrorRatchet.throwFormattedErr('Mismatch between processors and config valid types : %j', mismatch);
     }
   }
 
