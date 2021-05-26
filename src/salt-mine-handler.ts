@@ -8,8 +8,7 @@ import { SaltMineConfig } from './salt-mine-config';
 import { SaltMineQueueUtil } from './salt-mine-queue-util';
 import { LambdaEventDetector } from '@bitblit/ratchet/dist/aws';
 import { Arg } from '@fluffy-spoon/substitute';
-import all = Arg.all;
-import * as util from 'util';
+import { SaltMineConfigUtil } from './salt-mine-config-util';
 
 /**
  * We use a FIFO queue so that 2 different Lambdas don't both work on the same
@@ -18,30 +17,9 @@ import * as util from 'util';
 export class SaltMineHandler {
   constructor(private cfg: SaltMineConfig, private processors: Map<string, SaltMineProcessor | SaltMineProcessor[]>) {
     Logger.silly('Starting Salt Mine processor');
-    const cfgErrors: string[] = SaltMineQueueUtil.validateConfig(cfg);
+    const cfgErrors: string[] = SaltMineConfigUtil.validateProcessorsAgainstConfig(cfg, processors);
     if (cfgErrors.length > 0) {
       ErrorRatchet.throwFormattedErr('Invalid salt mine config : %j : %j', cfgErrors, cfg);
-    }
-
-    if (!processors || processors.size === 0) {
-      throw new Error('You must supply processors');
-    }
-
-    const mismatch: string[] = [];
-    Object.keys(cfg.processes).forEach((key) => {
-      if (!processors.has(key)) {
-        mismatch.push(util.format('Config defines process %s but no matching processor found', key));
-      }
-    });
-
-    Array.from(processors.keys()).forEach((key) => {
-      if (!cfg.processes[key]) {
-        mismatch.push(util.format('Processors defines %s but it is not present in the config process list', key));
-      }
-    });
-
-    if (mismatch.length > 0) {
-      ErrorRatchet.throwFormattedErr('Mismatch between processors and config valid types : %j', mismatch);
     }
   }
 
@@ -155,7 +133,7 @@ export class SaltMineHandler {
   private async takeEntryFromSaltMineQueue(): Promise<SaltMineEntry[]> {
     let rval: SaltMineEntry[] = [];
 
-    if (SaltMineQueueUtil.awsConfig(this.cfg)) {
+    if (SaltMineConfigUtil.awsConfig(this.cfg)) {
       const params = {
         MaxNumberOfMessages: 1,
         QueueUrl: this.cfg.aws.queueUrl,

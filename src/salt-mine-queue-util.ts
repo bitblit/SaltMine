@@ -6,6 +6,7 @@ import { GetQueueAttributesRequest, GetQueueAttributesResult } from 'aws-sdk/cli
 import { SaltMineLocalSimulationEntry } from './salt-mine-local-simulation-entry';
 import fetch from 'portable-fetch';
 import { ErrorRatchet, NumberRatchet, Logger } from '@bitblit/ratchet/dist/common';
+import { SaltMineConfigUtil } from './salt-mine-config-util';
 
 /**
  * This class just validates and puts items into the salt mine queue - it does not do
@@ -45,7 +46,7 @@ export class SaltMineQueueUtil {
   public static async addEntryToQueue(cfg: SaltMineConfig, entry: SaltMineEntry, fireStartMessage: boolean = true): Promise<string> {
     let rval: string = null;
     if (SaltMineQueueUtil.validEntry(cfg, entry)) {
-      if (SaltMineQueueUtil.awsConfig(cfg)) {
+      if (SaltMineConfigUtil.awsConfig(cfg)) {
         const params = {
           DelaySeconds: 0,
           MessageBody: JSON.stringify(entry),
@@ -99,7 +100,7 @@ export class SaltMineQueueUtil {
   public static async fireImmediateProcessRequest(cfg: SaltMineConfig, entry: SaltMineEntry): Promise<string> {
     let rval: string = null;
     if (SaltMineQueueUtil.validEntry(cfg, entry)) {
-      if (SaltMineQueueUtil.awsConfig(cfg)) {
+      if (SaltMineConfigUtil.awsConfig(cfg)) {
         Logger.debug('Immediately processing %j', entry);
         const toWrite: any = {
           type: SaltMineConstants.SALT_MINE_SNS_IMMEDIATE_RUN_FLAG,
@@ -120,7 +121,7 @@ export class SaltMineQueueUtil {
   }
 
   public static async fireStartProcessingRequest(cfg: SaltMineConfig): Promise<string> {
-    if (SaltMineQueueUtil.awsConfig(cfg)) {
+    if (SaltMineConfigUtil.awsConfig(cfg)) {
       return this.writeMessageToSnsTopic(cfg, SaltMineConstants.SALT_MINE_SNS_START_MARKER);
     } else {
       Logger.debug('fireStartProcessingRequest ignored, local');
@@ -130,7 +131,7 @@ export class SaltMineQueueUtil {
 
   public static async writeMessageToSnsTopic(cfg: SaltMineConfig, message: string): Promise<string> {
     let rval: string = null;
-    if (SaltMineQueueUtil.awsConfig(cfg)) {
+    if (SaltMineConfigUtil.awsConfig(cfg)) {
       const params = {
         Message: message,
         TopicArn: cfg.aws.notificationArn,
@@ -146,7 +147,7 @@ export class SaltMineQueueUtil {
 
   public static async fetchCurrentQueueAttributes(cfg: SaltMineConfig): Promise<GetQueueAttributesResult> {
     let rval: GetQueueAttributesResult = null;
-    if (SaltMineQueueUtil.awsConfig(cfg)) {
+    if (SaltMineConfigUtil.awsConfig(cfg)) {
       const req: GetQueueAttributesRequest = {
         AttributeNames: ['All'],
         QueueUrl: cfg.aws.queueUrl,
@@ -161,56 +162,11 @@ export class SaltMineQueueUtil {
 
   public static async fetchQueueApproximateNumberOfMessages(cfg: SaltMineConfig): Promise<number> {
     let rval: number = 0;
-    if (SaltMineQueueUtil.awsConfig(cfg)) {
+    if (SaltMineConfigUtil.awsConfig(cfg)) {
       const all: GetQueueAttributesResult = await this.fetchCurrentQueueAttributes(cfg);
       rval = NumberRatchet.safeNumber(all.Attributes['ApproximateNumberOfMessages']);
     } else {
       Logger.debug('Running development server - treating as 0 messages queued');
-    }
-    return rval;
-  }
-
-  public static developmentConfig(cfg: SaltMineConfig): boolean {
-    return !!cfg && !!cfg.development;
-  }
-
-  public static awsConfig(cfg: SaltMineConfig): boolean {
-    return !!cfg && !!cfg.aws;
-  }
-
-  public static validateConfig(cfg: SaltMineConfig): string[] {
-    const rval: string[] = [];
-    if (!cfg) {
-      rval.push('Null config');
-    } else {
-      if (!cfg.processes || cfg.processes.size === 0) {
-        rval.push('No processes specified');
-      }
-      if (!cfg.development && !cfg.aws) {
-        rval.push('Neither AWS nor development server configured');
-      }
-      if (cfg.aws && cfg.development) {
-        rval.push('Both AWS AND development server configured');
-      }
-      if (cfg.aws) {
-        if (!cfg.aws.notificationArn) {
-          rval.push('AWS config missing notificationArn');
-        }
-        if (!cfg.aws.queueUrl) {
-          rval.push('AWS config missing queueUrl');
-        }
-        if (!cfg.aws.sns) {
-          rval.push('AWS config missing sns');
-        }
-        if (!cfg.aws.sqs) {
-          rval.push('AWS config missing sqs');
-        }
-      }
-      if (cfg.development) {
-        if (!cfg.development.url) {
-          rval.push('Development config missing url');
-        }
-      }
     }
     return rval;
   }

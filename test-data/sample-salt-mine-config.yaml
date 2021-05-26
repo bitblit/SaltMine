@@ -1,31 +1,31 @@
-saltMine:
-  aws:
-    queueUrl: xxx
-    notificationArn: yyy
+# This file configures a sample salt mine server - the AWS resources below are faked
+aws:
+  queueUrl: https://sqs.us-east-1.amazonaws.com/012345678901/example-salt-mine-queue.fifo
+  notificationArn: arn:aws:sns:us-east-1:012345678901:example-salt-mine-queue-notification
 
-  developmentServer:
-    url: zzz
-    queueDelayMS: 5000
+developmentServer:
+  url: https://localhost:8124
+  queueDelayMS: 5000
 
-  processes:
-    Sample:
-      description: This is a sample process
-      schema:
-        type: object
-        properties:
-          numberField:
-            type: number
-            maximum: 25
-          stringField:
-            type: string
+processes:
+  Sample:
+    description: This is a sample process
+    schema:
+      type: object
+      properties:
+        numberField:
+          type: number
+          maximum: 25
+        stringField:
+          type: string
 
-    Echo:
-      description: This just echos it's message to the logger
-      schema:
-        type: object
-        required:
-          - message
-        properties:
-          message:
-            type: string
+  Echo:
+    description: This just echos it's message to the logger
+    schema:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
 
